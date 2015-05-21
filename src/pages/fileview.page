@@ -1,0 +1,485 @@
+<apex:page standardController="CodeInfo__c" extensions="FileViewController"
+    showHeader="false" sidebar="false" standardStylesheets="false" docType="html-5.0">
+    <head>
+        <meta charset="utf-8" />
+        <apex:outputPanel layout="none" rendered="{! isFileViewable }">
+        <title>{! apexModelable.name }</title>
+        </apex:outputPanel>
+        <apex:outputPanel layout="none" rendered="{! not(isFileViewable) }">
+        <title>Apex Docs</title>
+        </apex:outputPanel>
+        <style type="text/css">
+            .messageArea ul {
+                list-style: none;
+            }
+        </style>
+    </head>
+
+    <apex:stylesheet value="{!urlfor($Resource.apexdocs, 'css/apexdocs-bootstrap.css')}"/>
+    <apex:includeScript value="{!urlfor($Resource.apexdocsjquery, 'js/jquery.js')}"/>
+    <apex:includeScript value="{!urlfor($Resource.apexdocsbootstrap, 'js/bootstrap.js')}"/>
+    <apex:form >
+
+    <div class="container-fluid">
+        <div class="row-fluid">
+            <div class="span2" style="overflow:auto;">
+                <!--Sidebar content-->
+                <h4>All Classes</h4>
+                <apex:dataList value="{! availableClasses }" var="classFile" styleClass="unstyled">
+                    <apex:outputLink value="{! urlfor( $CurrentPage.name, null, ['id'=classFile.id])  }" >
+                        <apex:outputText value="<em>{! classFile.name }</em>" escape="false" rendered="{! classFile.isInterface }" />
+                        <apex:outputText value="{!classFile.name}" rendered="{! not(classFile.isInterface) }" />
+                    </apex:outputLink>
+                </apex:dataList>
+            </div>
+            <div class="span10">
+                <!--Body content-->
+                <ul class="nav nav-pills">
+                    <li><a href="#">Overview</a></li>
+                    <li class="active"><a href="#">Class</a></li>
+                    <li><a href="#">Use</a></li>
+                    <li><a href="#">Tree</a></li>
+                    <li><a href="#">Deprecated</a></li>
+                    <li><a href="#">Index</a></li>
+                    <li><a href="#">Help</a></li>
+                    <li class="pull-right"><a href="/setup/forcecomHomepage.apexp?setupid=ForceCom" target="orgSetup">Setup</a></li>
+                    <li class="pull-right"><a href="/home/home.jsp" target="orgHome">Home</a></li>
+                    <apex:outputPanel layout="none" rendered="{! isFileViewable }">
+                    <li class="pull-right"><a href="/{! fileable.apexFileId }" target="{! fileable.apexFileId }">See Code</a></li>
+                    <li class="pull-right"><apex:commandLink action="{!refreshDocumentation}" value="Refresh"/></li>
+                    </apex:outputPanel>
+                    <li class="pull-right"><apex:commandLink action="{!refreshAll}" value="Refresh All Docs"/></li>
+                </ul>
+
+                <div class="messageArea">
+                    <apex:messages />
+                </div>
+
+                <apex:outputPanel layout="none" rendered="{! isFileViewable }">
+                <div>
+                    <ul class="inline">
+                        <li>Summary:&nbsp;</li>
+                        <li>
+                            <apex:outputPanel layout="none" rendered="{! innerClassesable != null && innerClassesable.innerClasses.size > 0 }">
+                            <a href="#nested_class_summary">Nested</a>
+                            </apex:outputPanel>
+                            <apex:outputPanel layout="none" rendered="{! innerClassesable == null || innerClassesable.innerClasses.size == 0 }">
+                            Nested
+                            </apex:outputPanel>
+                            &nbsp;|&nbsp;
+                        </li>
+                        <li>
+                            <apex:outputPanel layout="none" rendered="{! propertiesable != null && propertiesable.properties.size > 0 }">
+                            <a href="#variable_summary">Variable</a>
+                            </apex:outputPanel>
+                            <apex:outputPanel layout="none" rendered="{! propertiesable == null || propertiesable.properties.size == 0 }">
+                            Variable
+                            </apex:outputPanel>
+                            &nbsp;|&nbsp;
+                        </li>
+                        <li>
+                            <apex:outputPanel layout="none" rendered="{! constructorsable != null && constructorsable.constructors.size > 0 }">
+                            <a href="#constructor_summary">Constr</a>
+                            </apex:outputPanel>
+                            <apex:outputPanel layout="none" rendered="{! constructorsable == null || constructorsable.constructors.size == 0 }">
+                            Constr
+                            </apex:outputPanel>
+                            &nbsp;|&nbsp;
+                        </li>
+                        <li>
+                            <apex:outputPanel layout="none" rendered="{! methodsable != null && methodsable.methods.size > 0 }">
+                            <a href="#method_summary">Method</a>
+                            </apex:outputPanel>
+                            <apex:outputPanel layout="none" rendered="{! methodsable == null || methodsable.methods.size == 0 }">
+                            Method
+                            </apex:outputPanel>
+                            &nbsp;|&nbsp;
+                        </li>
+                    </ul>
+
+
+
+                    <ul class="inline">
+                        <li>Detail:&nbsp;</li>
+                        <li>
+                            <apex:outputPanel layout="none" rendered="{! propertiesable != null && propertiesable.properties.size > 0 }">
+                            <a href="#fields_inherited_from_class">Variable</a>
+                            </apex:outputPanel>
+                            <apex:outputPanel layout="none" rendered="{! propertiesable == null || propertiesable.properties.size == 0 }">
+                            Variable
+                            </apex:outputPanel>
+                            &nbsp;|&nbsp;
+                        </li>
+                        <li>
+                            <apex:outputPanel layout="none" rendered="{! constructorsable != null && constructorsable.constructors.size > 0 }">
+                            <a href="#constructor_detail">Constr</a>
+                            </apex:outputPanel>
+                            <apex:outputPanel layout="none" rendered="{! constructorsable == null || constructorsable.constructors.size == 0 }">
+                            Constr
+                            </apex:outputPanel>
+                            &nbsp;|&nbsp;
+                        </li>
+                        <li>
+                            <apex:outputPanel layout="none" rendered="{! methodsable != null && methodsable.methods.size > 0 }">
+                            <a href="#method_detail">Method</a>
+                            </apex:outputPanel>
+                            <apex:outputPanel layout="none" rendered="{! methodsable == null || methodsable.methods.size == 0 }">
+                            Method
+                            </apex:outputPanel>
+                            &nbsp;|&nbsp;
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="codeInfoDisplay">
+                    <h3><apex:outputText value="Interface" rendered="{! fileable != null && fileable.isInterface }" />
+                        <apex:outputText value="Class" rendered="{! fileable != null && not(fileable.isInterface) }" />
+                         {! apexModelable.name }</h3>
+
+                    <apex:outputPanel layout="none" rendered="{! apexFileInfo != null }">
+                    <dl>
+                        <dd>
+                            Created By:&nbsp;&nbsp;<apex:outputLink value="/{! apexFileInfo.apexFileCreatedById }">{!  apexFileInfo.apexFileCreatedByName }</apex:outputLink>
+                        </dd>
+                        <dd>
+                            Created Date:&nbsp;&nbsp;<apex:outputText value="{0,date, MM/dd/yyyy 'at' HH:mm:ss z}">
+                                                            <apex:param value="{!  apexFileInfo.apexFileCreatedDate }" />
+                                                     </apex:outputText>
+                        </dd>
+                        <dd>
+                            Last Modified By:&nbsp;&nbsp;<apex:outputLink value="/{! apexFileInfo.apexFileLastModifiedById }">{!  apexFileInfo.apexFileLastModifiedByName }</apex:outputLink>
+                        </dd>
+                        <dd>
+                            Last Modified Date:&nbsp;&nbsp;<apex:outputText value="{0,date, MM/dd/yyyy 'at' HH:mm:ss z}">
+                                                            <apex:param value="{!  apexFileInfo.apexFileLastModifiedDate }" />
+                                                     </apex:outputText>
+                        </dd>
+                    </dl>
+                    </apex:outputPanel>
+                    <apex:outputPanel layout="none" rendered="{! implementable != null && implementable.interfacesImplemented.size > 0 }">
+                    <dl>
+                        <dt>All Implemented Interfaces:</dt>
+                        <dd>
+                            <apex:repeat value="{! implementable.interfacesImplemented }" var="classLink">
+                            <apex:outputLink value="{! classLink.url }" rendered="{! classLink.isLinkResolved }">{! classLink.name }</apex:outputLink><apex:outputText value="{! classLink.name }" rendered="{! not(classLink.isLinkResolved) }" />,&nbsp;
+                            </apex:repeat>
+                        </dd>
+                    </dl>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel layout="none" rendered="{! knownSubClasses.size > 0 }">
+                    <dl>
+                       <dt>Direct Known Subclasses:</dt>
+                       <dd>
+                            <apex:repeat value="{! knownSubClasses }" var="classLink">
+                                <apex:outputLink value="{! classLink.fromUrl }">{! classLink.fromName }</apex:outputLink>,&nbsp;
+                            </apex:repeat>
+                       </dd>
+                    </dl>
+                    </apex:outputPanel>
+                    <apex:outputPanel layout="none" rendered="{! knownImplementors.size > 0 }">
+                    <dl>
+                       <dt>Direct Known Implementors:</dt>
+                       <dd>
+                            <apex:repeat value="{! knownImplementors }" var="classLink">
+                                <apex:outputLink value="{! classLink.fromUrl }">{! classLink.fromName }</apex:outputLink>,&nbsp;
+                            </apex:repeat>
+                       </dd>
+                    </dl>
+                    </apex:outputPanel>
+                    <apex:outputPanel layout="none" rendered="{! knownThrowersOfException.size > 0 }">
+                    <dl>
+                       <dt>Known Classes That Throw This Exception:</dt>
+                       <dd>
+                            <apex:repeat value="{! knownThrowersOfException }" var="classLink">
+                                <apex:outputLink value="{! classLink.fromUrl }">{! classLink.fromName }</apex:outputLink>,&nbsp;
+                            </apex:repeat>
+                       </dd>
+                    </dl>
+                    </apex:outputPanel>
+                    <hr/>
+
+                    <pre>{! left(model.NameLine, (find(apexModelable.name, model.NameLine) + len(apexModelable.name)) ) }
+                        <apex:outputPanel layout="none" rendered="{! extensible != null && extensible.extends != null }">
+                            <br/>extends&nbsp;<apex:outputLink value="{! extensible.extends.url }" rendered="{! extensible.extends.isLinkResolved }">{! extensible.extends.name }</apex:outputLink>
+                            <apex:outputText value="{! extensible.extends.name }" rendered="{! not(extensible.extends.isLinkResolved) }" />
+                        </apex:outputPanel>
+                        <apex:outputPanel layout="none" rendered="{! implementable != null && implementable.interfacesImplemented.size > 0 }">
+                            <br/>implements&nbsp;<apex:repeat value="{! implementable.interfacesImplemented }" var="classLink"><apex:outputLink value="{! classLink.url }" rendered="{! classLink.isLinkResolved }">{! classLink.name }</apex:outputLink><apex:outputText value="{! classLink.name }" rendered="{! not(classLink.isLinkResolved) }" />,&nbsp;</apex:repeat>
+                        </apex:outputPanel>
+                    </pre>
+                    <div class="block">
+                        <apex:outputText value="{! model.description }" escape="false" />
+                    </div>
+                    <apex:outputPanel layout="none" rendered="{! authorable != null && authorable.authors.size > 0 }">
+                    <dl>
+                        <dt>Author:</dt>
+                        <dd>
+                            <apex:repeat value="{! authorable.authors }" var="author">
+                                {! author }
+                            </apex:repeat>
+                        </dd>
+                    </dl>
+                    </apex:outputPanel>
+                    <apex:outputPanel layout="none" rendered="{! model.since != null }">
+                    <dl>
+                        <dt>Since:</dt>
+                        <dd>{! model.since }</dd>
+                    </dl>
+                    </apex:outputPanel>
+                    <apex:outputPanel layout="none" rendered="{! model.sees.size > 0 }">
+                    <dl>
+                        <dt>See also:</dt>
+                        <dd>
+                            <apex:repeat value="{! model.sees }" var="classLink">
+                                <apex:outputLink value="{! classLink.url }" rendered="{! classLink.isLinkResolved }">{! classLink.name }</apex:outputLink><apex:outputText value="{! classLink.name }" rendered="{! not(classLink.isLinkResolved) }" />,&nbsp;
+                            </apex:repeat>
+                        </dd>
+                    </dl>
+                    </apex:outputPanel>
+                    <apex:outputPanel layout="none" rendered="{! innerClassesable != null && innerClassesable.innerClasses.size > 0 }">
+                    <ul class="unstyled">
+                        <li>
+                            <a name="nested_class_summary"><!--   --></a>
+<!--
+                            <h3>TODO:  section - see <a href="http://docs.oracle.com/javase/7/docs/api/java/util/ResourceBundle.html">ResourceBundle.html</a></h3>
+ -->
+                            <h3>Nested Class Summary</h3>
+                            <table class="table table-striped">
+                                <caption><span>Nested Classes</span><span class="tabEnd">&nbsp;</span></caption>
+                                <tbody>
+                                    <tr>
+                                        <th class="colFirst" scope="col">Modifier and Type</th>
+                                        <th class="colLast" scope="col">Class and Description</th>
+                                    </tr>
+                                    <apex:repeat value="{! innerClassesable.innerClasses }" var="innerClass">
+                                    <apex:variable var="innerClassSignature" value="{! right(innerClass.NameLine, (len(innerClass.NameLine) - find(innerClass.name, innerClass.NameLine) + 1) ) }" />
+                                    <tr>
+                                        <td class="colFirst">{! left(innerClass.NameLine, (find(innerClass.name, innerClass.NameLine) - 2) ) }</td>
+                                        <td class="colLast">
+                                            <strong><a href="#{! innerClassSignature }">{! innerClass.name }</a></strong>
+                                        </td>
+                                    </tr>
+                                    </apex:repeat>
+                                </tbody>
+                            </table>
+
+                        </li>
+                    </ul>
+                    </apex:outputPanel>
+                    <apex:outputPanel layout="none" rendered="{! propertiesable != null && propertiesable.properties.size > 0 }">
+                    <!-- =========== VARIABLE SUMMARY =========== -->
+                    <ul class="unstyled">
+                        <li>
+                            <a name="variable_summary"><!--   --></a>
+                            <h3>Variable Summary</h3>
+                            <table class="table table-striped">
+                                <caption><span>Class Variables</span><span class="tabEnd">&nbsp;</span></caption>
+                                <tbody>
+                                    <tr>
+                                        <th class="colFirst" scope="col">Modifier and Type</th>
+                                        <th class="colLast" scope="col">Class Variables and Description</th>
+                                    </tr>
+                                    <apex:repeat value="{! propertiesable.properties }" var="property">
+                                    <apex:variable var="propertySignature" value="{! right(property.NameLine, (len(property.NameLine) - find(property.name, property.NameLine) + 1) ) }" />
+                                    <tr>
+                                        <td class="colFirst">{! left(property.NameLine, (find(property.name, property.NameLine) - 2) ) }</td>
+                                        <td class="colLast"><strong><a href="#{! propertySignature }">{! propertySignature }</a></strong></td>
+                                    </tr>
+                                    </apex:repeat>
+                                </tbody>
+                            </table>
+                        </li>
+                    </ul>
+                    </apex:outputPanel>
+                    <apex:outputPanel layout="none" rendered="{! constructorsable != null && constructorsable.constructors.size > 0 }">
+                    <ul class="unstyled">
+                        <li>
+                            <a name="constructor_summary"><!--   --></a>
+                            <h3>Constructor Summary</h3>
+                            <table class="table table-striped">
+                                <caption><span>Constructors</span><span class="tabEnd">&nbsp;</span></caption>
+                                <tbody>
+                                    <tr>
+                                        <th class="colLast" scope="col">Constructor and Description</th>
+                                    </tr>
+                                    <apex:repeat value="{! constructorsable.constructors }" var="constructor">
+                                    <apex:variable var="constructorSignature" value="{! right(constructor.NameLine, (len(constructor.NameLine) - find(constructor.name, constructor.NameLine) + 1) ) }" />
+                                    <tr>
+                                        <td class="colLast">
+                                            <strong><a href="#{! constructorSignature }">{! left( constructorSignature, find('(', constructorSignature) -1 ) }</a></strong>
+                                            {! right(constructorSignature, len(constructorSignature) - find('(', constructorSignature) + 1) }
+                                        </td>
+                                    </tr>
+                                    </apex:repeat>
+                                </tbody>
+                            </table>
+                        </li>
+                    </ul>
+                    </apex:outputPanel>
+                    <apex:outputPanel layout="none" rendered="{! methodsable != null && methodsable.methods.size > 0 }">
+                    <ul class="unstyled">
+                        <li>
+                            <a name="method_summary"><!--   --></a>
+                            <h3>Method Summary</h3>
+                            <table class="table table-striped">
+                                <caption><span>Methods</span><span class="tabEnd">&nbsp;</span></caption>
+                                <tbody>
+                                    <tr>
+                                        <th class="colFirst" scope="col">Modifier and Type</th>
+                                        <th class="colLast" scope="col">Method and Description</th>
+                                    </tr>
+                                    <apex:repeat value="{! methodsable.methods }" var="method">
+                                    <apex:variable var="methodSignature" value="{! right(method.NameLine, (len(method.NameLine) - find(method.name, method.NameLine) + 1) ) }" />
+                                    <tr>
+                                        <td class="colFirst">{! left(method.NameLine, (find(method.name, method.NameLine) - 2) ) }</td>
+                                        <td class="colLast">
+                                            <strong><a href="#{! methodSignature }">{! left( methodSignature, find('(', methodSignature) -1 ) }</a></strong>
+                                            {! right(methodSignature, len(methodSignature) - find('(', methodSignature) + 1) }
+                                        </td>
+                                    </tr>
+                                    </apex:repeat>
+                                </tbody>
+                            </table>
+                        </li>
+                    </ul>
+                    </apex:outputPanel>
+                    <apex:outputPanel layout="none" rendered="{! innerClassesable != null && innerClassesable.innerClasses.size > 0 }">
+                    <ul class="unstyled">
+                        <li>
+                            <a name="innerClass_detail"><!--   --></a>
+                            <h3>Nested Class Detail</h3>
+                            <apex:repeat value="{! innerClassesable.innerClasses }" var="innerClass">
+                            <apex:variable var="innerClassSignature" value="{! right(innerClass.NameLine, (len(innerClass.NameLine) - find(innerClass.name, innerClass.NameLine) + 1) ) }" />
+                            <a name="{! innerClassSignature }"><!--  --></a>
+                            <ul>
+                                <li>
+                                    <h4>{! innerClass.name }</h4>
+                                    <pre>{! innerClass.nameLine }</pre>
+                                    <div>
+                                        <apex:outputText value="{! innerClass.description }" escape="false" />
+                                    </div>
+                                </li>
+                            </ul>
+                            </apex:repeat>
+                        </li>
+                    </ul>
+                    </apex:outputPanel>
+                    <apex:outputPanel layout="none" rendered="{! propertiesable != null && propertiesable.properties.size > 0 }">
+                    <ul class="unstyled">
+                        <li>
+                            <a name="properties_detail"><!--   --></a>
+                            <h3>Properties Detail</h3>
+                            <apex:repeat value="{! propertiesable.properties }" var="property">
+                            <apex:variable var="propertySignature" value="{! right(property.NameLine, (len(property.NameLine) - find(property.name, property.NameLine) + 1) ) }" />
+                            <a name="{! propertySignature }"><!--  --></a>
+                            <ul>
+                                <li>
+                                    <h4>{! property.name }</h4>
+                                    <pre>{! property.nameLine }</pre>
+                                    <div>
+                                        <apex:outputText value="{! property.description }" escape="false" />
+                                    </div>
+                                </li>
+                            </ul>
+                            </apex:repeat>
+                        </li>
+                    </ul>
+                    </apex:outputPanel>
+                    <apex:outputPanel layout="none" rendered="{! constructorsable != null && constructorsable.constructors.size > 0 }">
+                    <ul class="unstyled">
+                        <li>
+                            <a name="constructor_detail"><!--   --></a>
+                            <h3>Constructor Detail</h3>
+                            <apex:repeat value="{! constructorsable.constructors }" var="constructor">
+                            <apex:variable var="constructorSignature" value="{! right(constructor.NameLine, (len(constructor.NameLine) - find(constructor.name, constructor.NameLine) + 1) ) }" />
+                            <a name="{! constructorSignature }"><!--  --></a>
+                            <ul>
+                                <li>
+                                    <h4>{! constructor.name }</h4>
+                                    <pre>{! constructor.nameLine }</pre>
+                                    <div>
+                                        <apex:outputText value="{! constructor.description }" escape="false" />
+                                    </div>
+                                    <apex:outputPanel layout="none" rendered="{! constructor.params.size > 0 }">
+                                    <dl>
+                                        <dt><span class="strong">Parameters:</span></dt>
+                                        <apex:repeat value="{! constructor.params }" var="param">
+                                            <dd><code>{! param }</code></dd>
+                                        </apex:repeat>
+                                    </dl>
+                                    </apex:outputPanel>
+                                </li>
+                            </ul>
+                            </apex:repeat>
+                        </li>
+                    </ul>
+                    </apex:outputPanel>
+
+
+
+                    <apex:outputPanel layout="none" rendered="{! methodsable != null && methodsable.methods.size > 0 }">
+                    <ul class="unstyled">
+                        <li>
+                            <a name="method_detail"><!--   --></a>
+                            <h3>Method Detail</h3>
+                            <apex:repeat value="{! methodsable.methods }" var="method">
+                            <apex:variable var="methodSignature" value="{! right(method.NameLine, (len(method.NameLine) - find(method.name, method.NameLine) + 1) ) }" />
+
+                            <a name="{! methodSignature }"><!--  --></a>
+                            <ul>
+                                <li>
+                                    <h4>{! method.name }</h4>
+                                    <pre>{! method.nameLine }</pre>
+                                    <div>
+                                        <apex:outputText value="{! method.description }" escape="false" />
+                                    </div>
+                                    <apex:outputPanel layout="none" rendered="{! method.params.size > 0 }">
+                                    <dl>
+                                        <dt><span class="strong">Parameters:</span></dt>
+                                        <apex:repeat value="{! method.params }" var="param">
+                                            <dd>{! param }</dd>
+                                        </apex:repeat>
+                                    </dl>
+                                    </apex:outputPanel>
+				                    <apex:outputPanel layout="none" rendered="{! method.returnType != null }">
+				                    <dl>
+				                        <dt>Returns:</dt>
+				                        <dd>{! method.returnType }</dd>
+				                    </dl>
+				                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{! method.sees.size > 0 }">
+                                    <dl>
+                                        <dt><span class="strong">See Also:</span></dt>
+                                        <dd>
+                                            <apex:repeat value="{! method.sees }" var="classLink">
+                                                <apex:outputLink value="{! classLink.url }" rendered="{! classLink.isLinkResolved }">{! classLink.name }</apex:outputLink><apex:outputText value="{! classLink.name }" rendered="{! not(classLink.isLinkResolved) }" />,&nbsp;
+                                            </apex:repeat>
+                                        </dd>
+                                    </dl>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{! method.throws.size > 0 }">
+                                    <dl>
+                                        <dt><span class="strong">Throws:</span></dt>
+                                        <dd>
+                                            <apex:repeat value="{! method.throws }" var="classLink">
+                                                <apex:outputLink value="{! classLink.url }" rendered="{! classLink.isLinkResolved }">{! classLink.name }</apex:outputLink>
+                                                <apex:outputText value="{! classLink.name }" rendered="{! not(classLink.isLinkResolved) }" />,&nbsp;
+                                            </apex:repeat>
+                                        </dd>
+                                    </dl>
+                                    </apex:outputPanel>
+                                </li>
+                            </ul>
+                            </apex:repeat>
+                        </li>
+                    </ul>
+                    </apex:outputPanel>
+                </div>
+                </apex:outputPanel>
+            </div>
+        </div>
+    </div>
+    </apex:form>
+
+</apex:page>

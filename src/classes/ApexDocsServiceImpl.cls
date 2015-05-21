@@ -1,0 +1,239 @@
+/**
+ *  Service to handle all processing requests for the ApexDocs application. This class is responsible
+ *      for parsing the Apex Class and organizing the information
+ *      for display in the "docs" section.
+ *  @author John M. Daniel
+ * @date 7 MARCH 2015
+ * @see ClassModel
+ * @see IFile
+ * @see MethodModel
+ * @see PropertyModel
+ * @since 1.0
+ * @version 1.0
+ */
+public with sharing class ApexDocsServiceImpl
+    implements IApexDocsService
+{
+    public ApexDocsServiceImpl()
+    {
+
+    }
+
+    private IFile assembleModel(final Attachment codeInfoAttachment)
+    {
+        IFile model = ApexDocModelCompositeTransformer.convertAttachmentToDomainModel( codeInfoAttachment );
+
+        list<ClassLink__c> classLinkRecords = ClassLinksSelector.newInstance().selectByApexClassNameParent( new set<string>{ model.getName() } );
+
+        if (model instanceOf IImplementable)
+        {
+            ((IImplementable)model).getInterfacesImplemented().clear();
+        }
+
+        if (model instanceOf ISees)
+        {
+            ((ISees)model).getSees().clear();
+        }
+
+        if (model instanceOf IDescriptionLinks)
+        {
+            ((IDescriptionLinks)model).getDescriptionLinks().clear();
+        }
+
+        for (ClassLink__c classLinkRecord : classLinkRecords)
+        {
+            if (ClassLinkModel.ClassLinkTypes.EXTENDING.name().equalsIgnoreCase( classLinkRecord.Type__c )
+                && model instanceOf IExtensible
+                )
+            {
+                ((IExtensible)model).setExtends( ApexDocModelCompositeTransformer.createClassLinkModel( classLinkRecord ) );
+            }
+
+            if (ClassLinkModel.ClassLinkTypes.IMPLEMENTING.name().equalsIgnoreCase( classLinkRecord.Type__c )
+                && model instanceOf IImplementable
+                )
+            {
+                ((IImplementable)model).getInterfacesImplemented().add( ApexDocModelCompositeTransformer.createClassLinkModel( classLinkRecord ) );
+            }
+
+            if (ClassLinkModel.ClassLinkTypes.SEEING.name().equalsIgnoreCase( classLinkRecord.Type__c )
+                && model instanceOf ISees
+                )
+            {
+                ((ISees)model).getSees().add( ApexDocModelCompositeTransformer.createClassLinkModel( classLinkRecord ) );
+            }
+
+            if (ClassLinkModel.ClassLinkTypes.DESCRIPTION.name().equalsIgnoreCase( classLinkRecord.Type__c )
+                && model instanceOf IDescriptionLinks
+                )
+            {
+                ((IDescriptionLinks)model).getDescriptionLinks().add( ApexDocModelCompositeTransformer.createClassLinkModel( classLinkRecord ) );
+            }
+
+            if (ClassLinkModel.ClassLinkTypes.THROWING.name().equalsIgnoreCase( classLinkRecord.Type__c )
+                && model instanceOf IThrows
+                )
+            {
+                ((IThrows)model).getThrows().add( ApexDocModelCompositeTransformer.createClassLinkModel( classLinkRecord ) );
+            }
+        }
+
+        if (model instanceOf IMethods
+            && ((IMethods)model).getMethods() != null
+            && ! ((IMethods)model).getMethods().isEmpty()
+            )
+        {
+            for (MethodModel method : ((IMethods)model).getMethods())
+            {
+                ((IThrows)method).getThrows().clear();
+
+                ((ISees)method).getSees().clear();
+
+                ((IDescriptionLinks)method).getDescriptionLinks().clear();
+
+                for (ClassLink__c classLinkRecord : classLinkRecords)
+                {
+                    if (ClassLinkModel.ClassLinkTypes.THROWING.name().equalsIgnoreCase( classLinkRecord.Type__c )
+                        && method.getNameLine().equalsIgnoreCase( classLinkRecord.Related_Construct__c )
+                        )
+                    {
+                        ((IThrows)method).getThrows().add( ApexDocModelCompositeTransformer.createClassLinkModel( classLinkRecord ) );
+                    }
+
+                    if (ClassLinkModel.ClassLinkTypes.SEEING.name().equalsIgnoreCase( classLinkRecord.Type__c )
+                        && method.getNameLine().equalsIgnoreCase( classLinkRecord.Related_Construct__c )
+                        )
+                    {
+                        ((ISees)method).getSees().add( ApexDocModelCompositeTransformer.createClassLinkModel( classLinkRecord ) );
+                    }
+
+		            if (ClassLinkModel.ClassLinkTypes.DESCRIPTION.name().equalsIgnoreCase( classLinkRecord.Type__c )
+		                && method.getNameLine().equalsIgnoreCase( classLinkRecord.Related_Construct__c )
+		                )
+		            {
+		                ((IDescriptionLinks)method).getDescriptionLinks().add( ApexDocModelCompositeTransformer.createClassLinkModel( classLinkRecord ) );
+		            }
+                }
+            }
+        }
+
+        return model;
+    }
+
+    /**
+     *  @throw ApexDocsServiceException
+     */
+    public IFile getClass(final id classId)
+    {
+    	if (classId == null)
+        {
+            throw new ApexDocsServiceException('The id must be specified.');
+        }
+
+        list<Attachment> apexDocRelatedAttachments = AttachmentsSelector.newInstance().selectByApexClassNameParent( new set<id>{ classId } );
+
+        if (apexDocRelatedAttachments == null || apexDocRelatedAttachments.size() == 0)
+        {
+            throw new ApexDocsServiceException('A file could not be found with the id of ['+classId+']');
+        }
+
+        return assembleModel( apexDocRelatedAttachments[0] );
+    }
+
+    /**
+     *  This method will get the full model (either ClassModel or InterfaceModel) based on the name supplied.
+     *
+     *  @throws ApexDocsServiceException
+     *  @see ApexDocsServiceException
+     *  @param className - the name of the Apex class desired.
+     */
+    public IFile getClass(final string className)
+    {
+        if (className == null)
+        {
+            throw new ApexDocsServiceException('The className must be specified.');
+        }
+
+        list<Attachment> apexDocRelatedAttachments = AttachmentsSelector.newInstance().selectByApexClassNameParent( new set<string>{ className } );
+
+        if (apexDocRelatedAttachments == null || apexDocRelatedAttachments.size() == 0)
+        {
+            throw new ApexDocsServiceException('A file could not be found with the name of \''+className+'\'');
+        }
+
+        return assembleModel( apexDocRelatedAttachments[0] );
+    }
+
+    public list<IFile> findAllFiles()
+    {
+        final list<IFile> files = new list<IFile>();
+
+        for (CodeInfo__c obj : CodeInfosSelector.newInstance().selectAll())
+        {
+            files.add(new FileModel(obj.id, obj.FileName__c, Type.forName(obj.ModelType__c), obj.ApexClassId__c));
+        }
+
+        return files;
+    }
+
+    public list<ClassLinkModel> findKnownSubClassesForFile(final IFile model)
+    {
+        list<ClassLinkModel> models = new list<ClassLinkModel>();
+
+        for ( ClassLink__c aClassLink : ClassLinksSelector.newInstance().selectByLinkTo(model.getId()))
+        {
+            if ( ClassLinkModel.ClassLinkTypes.EXTENDING.name() == aClassLink.Type__c )
+            {
+                models.add(ApexDocModelCompositeTransformer.createClassLinkModel(aClassLink));
+            }
+        }
+
+        return models;
+    }
+
+    public list<ClassLinkModel> findKnownImplementorsForFile(final IFile model)
+    {
+        list<ClassLinkModel> models = new list<ClassLinkModel>();
+
+        for ( ClassLink__c aClassLink : ClassLinksSelector.newInstance().selectByLinkTo(model.getId()))
+        {
+            if ( ClassLinkModel.ClassLinkTypes.IMPLEMENTING.name() == aClassLink.Type__c )
+            {
+                models.add(ApexDocModelCompositeTransformer.createClassLinkModel(aClassLink));
+            }
+        }
+
+        return models;
+    }
+
+    public list<ClassLinkModel> findKnownThrowersOfExceptionForFile(final IFile model)
+    {
+        list<ClassLinkModel> models = new list<ClassLinkModel>();
+
+        set<string> classesThrowingThisException = new set<string>();
+
+        for ( ClassLink__c aClassLink : ClassLinksSelector.newInstance().selectByLinkTo(model.getId()))
+        {
+            if ( ClassLinkModel.ClassLinkTypes.THROWING.name() == aClassLink.Type__c
+                && ! classesThrowingThisException.contains( aClassLink.CodeInfoName__c ))
+            {
+                models.add(ApexDocModelCompositeTransformer.createClassLinkModel(aClassLink));
+
+                classesThrowingThisException.add( aClassLink.CodeInfoName__c );
+            }
+        }
+
+        return models;
+    }
+
+    public void documentAll()
+    {
+    	CodeDocumenter.documentApexFiles(ApexClassesSelector.newInstance().selectAll());
+    }
+
+    public void document(final IFile model)
+    {
+    	CodeDocumenter.documentApexFiles(ApexClassesSelector.newInstance().selectById(new set<id>{model.getApexFileId()}));
+    }
+
+}

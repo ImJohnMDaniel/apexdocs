@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <actionOverrides>
+        <actionName>Accept</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>CancelEdit</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Clone</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Delete</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Edit</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Follow</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>List</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>New</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>SaveEdit</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Tab</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>View</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <compactLayoutAssignment>SYSTEM</compactLayoutAssignment>
+    <deploymentStatus>Deployed</deploymentStatus>
+    <description>Represents the linkage from one file to another via an &quot;extends&quot;, &quot;implements&quot;, &quot;sees&quot;, and &quot;exceptions&quot;</description>
+    <enableActivities>false</enableActivities>
+    <enableBulkApi>true</enableBulkApi>
+    <enableFeeds>false</enableFeeds>
+    <enableHistory>false</enableHistory>
+    <enableReports>false</enableReports>
+    <enableSharing>true</enableSharing>
+    <enableStreamingApi>true</enableStreamingApi>
+    <fields>
+        <fullName>CodeInfoName__c</fullName>
+        <externalId>false</externalId>
+        <formula>CodeInfo__r.FileName__c</formula>
+        <label>Code Info Name</label>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>CodeInfo__c</fullName>
+        <description>This is the link to the file that &quot;contains&quot; the link.</description>
+        <externalId>false</externalId>
+        <inlineHelpText>This is the link to the file that &quot;contains&quot; the link.</inlineHelpText>
+        <label>Code Info</label>
+        <referenceTo>CodeInfo__c</referenceTo>
+        <relationshipLabel>Class Links</relationshipLabel>
+        <relationshipName>ClassLinks</relationshipName>
+        <relationshipOrder>0</relationshipOrder>
+        <reparentableMasterDetail>false</reparentableMasterDetail>
+        <trackTrending>false</trackTrending>
+        <type>MasterDetail</type>
+        <writeRequiresMasterRead>false</writeRequiresMasterRead>
+    </fields>
+    <fields>
+        <fullName>CoreApexLink__c</fullName>
+        <description>Web address of a core Apex class or interface that this links to.</description>
+        <externalId>false</externalId>
+        <inlineHelpText>Web address of a core Apex class or interface that this links to.</inlineHelpText>
+        <label>Core Apex Link</label>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Url</type>
+    </fields>
+    <fields>
+        <fullName>LinksToName__c</fullName>
+        <description>The name of the class or method that this link is in reference to.</description>
+        <externalId>false</externalId>
+        <inlineHelpText>The name of the class or method that this link is in reference to.</inlineHelpText>
+        <label>Links To Name</label>
+        <length>255</length>
+        <required>true</required>
+        <trackTrending>false</trackTrending>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>LinksTo__c</fullName>
+        <deleteConstraint>SetNull</deleteConstraint>
+        <description>This is the link to the file that Code Info file actually links to.</description>
+        <externalId>false</externalId>
+        <inlineHelpText>This is the link to the file that Code Info file actually links to.</inlineHelpText>
+        <label>Links To</label>
+        <referenceTo>CodeInfo__c</referenceTo>
+        <relationshipLabel>Class Links (Links To)</relationshipLabel>
+        <relationshipName>References</relationshipName>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Lookup</type>
+    </fields>
+    <fields>
+        <fullName>Related_Construct__c</fullName>
+        <description>The method or inner class that the class link may related to.  For example, a @throws link does not belong to a class but rather a method of a class.</description>
+        <externalId>false</externalId>
+        <inlineHelpText>The method or inner class that the class link may related to.  For example, a @throws link does not belong to a class but rather a method of a class.</inlineHelpText>
+        <label>Related Construct</label>
+        <length>255</length>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Type__c</fullName>
+        <description>The type of class link this record represents.  Is it an &quot;extends&quot;, an &quot;implements&quot;, a &quot;see&quot;, or an &quot;exception&quot;.</description>
+        <externalId>false</externalId>
+        <inlineHelpText>The type of class link this record represents.  Is it an &quot;extends&quot;, an &quot;implements&quot;, a &quot;see&quot;, or an &quot;exception&quot;.</inlineHelpText>
+        <label>Type</label>
+        <length>255</length>
+        <required>true</required>
+        <trackTrending>false</trackTrending>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <label>Class Link</label>
+    <nameField>
+        <displayFormat>CLN-{0000000000}</displayFormat>
+        <label>Class Link Name</label>
+        <type>AutoNumber</type>
+    </nameField>
+    <pluralLabel>Class Links</pluralLabel>
+    <searchLayouts/>
+    <sharingModel>ControlledByParent</sharingModel>
+</CustomObject>

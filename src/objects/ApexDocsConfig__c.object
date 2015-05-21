@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <customSettingsType>List</customSettingsType>
+    <customSettingsVisibility>Public</customSettingsVisibility>
+    <description>Various pieces of config data for the Apex Docs application.</description>
+    <enableFeeds>false</enableFeeds>
+    <fields>
+        <fullName>Key__c</fullName>
+        <description>The &quot;Key&quot; to the &quot;Key Value&quot; pair.</description>
+        <externalId>false</externalId>
+        <inlineHelpText>The &quot;Key&quot; to the &quot;Key Value&quot; pair.</inlineHelpText>
+        <label>Key</label>
+        <length>255</length>
+        <required>true</required>
+        <trackTrending>false</trackTrending>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>SortOrder__c</fullName>
+        <defaultValue>0</defaultValue>
+        <description>This field is used to specify the sorting order of the values for a type.</description>
+        <externalId>false</externalId>
+        <inlineHelpText>This field is used to specify the sorting order of the values for a type.</inlineHelpText>
+        <label>Sort Order</label>
+        <precision>18</precision>
+        <required>true</required>
+        <scale>0</scale>
+        <trackTrending>false</trackTrending>
+        <type>Number</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Type__c</fullName>
+        <description>All of the ApexDocs application settings are grouped together by type.  The program code will group the values that it needs to form sub lists to work with.</description>
+        <externalId>false</externalId>
+        <inlineHelpText>All of the ApexDocs application settings are grouped together by type.  The program code will group the values that it needs to form sub lists to work with.</inlineHelpText>
+        <label>Type</label>
+        <length>255</length>
+        <required>true</required>
+        <trackTrending>false</trackTrending>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Value__c</fullName>
+        <description>The &quot;Value&quot; to the &quot;Key Value&quot; pair.</description>
+        <externalId>false</externalId>
+        <inlineHelpText>The &quot;Value&quot; to the &quot;Key Value&quot; pair.</inlineHelpText>
+        <label>Value</label>
+        <length>255</length>
+        <required>true</required>
+        <trackTrending>false</trackTrending>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <label>Apex Docs Config</label>
+</CustomObject>
