@@ -8,4 +8,5 @@ public interface IApexDocsService
     list<ClassLinkModel> findKnownThrowersOfExceptionForFile(final IFile model);
     void documentAll();
     void document(final IFile model);
+    void reset();
 }

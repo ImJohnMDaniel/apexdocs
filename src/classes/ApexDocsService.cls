@@ -67,4 +67,8 @@ public with sharing class ApexDocsService
         service().document( model );
     }
 
+    public static void reset()
+    {
+        service().reset();
+    }
 }

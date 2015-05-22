@@ -236,4 +236,8 @@ public with sharing class ApexDocsServiceImpl
     	CodeDocumenter.documentApexFiles(ApexClassesSelector.newInstance().selectById(new set<id>{model.getApexFileId()}));
     }
 
+    public void reset()
+    {
+        delete [select id from CodeInfo__c];
+    }
 }
