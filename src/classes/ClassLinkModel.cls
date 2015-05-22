@@ -48,6 +48,18 @@ public class ClassLinkModel
     {
     	this.linkType = linkType;
     	this.name = name;
+    	// If the "name" is actually a true weblink...
+		try
+		{
+		    Url u  = new url( name );
+		    // if the above works, then it is a weblink
+		    this.url = name;
+		}
+		catch ( System.StringException se )
+		{
+            // the string exception would occur if it is not a true weblink
+            // do nothing because it is a Apec Class reference instead
+		}
     }
 
     public ClassLinkModel.ClassLinkTypes getLinkType()
