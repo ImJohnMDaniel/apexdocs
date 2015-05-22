@@ -62,10 +62,13 @@ global class CodeDocumenter // implements Database.Batchable<SObject>  For Batch
         boolean isLinkTagInCommentFound = false;
         string tagIdentified = null;
         system.debug(model);
+        // system.debug( lstComments );
 
         for (string comment : lstComments)
         {
             comment = comment.trim();
+
+            // system.debug( comment );
 
             // TODO: It might help to have a complete list of possible tags and see if the tagIdentified
             //      string matches one of the selections.
@@ -80,7 +83,7 @@ global class CodeDocumenter // implements Database.Batchable<SObject>  For Batch
             {
                 tagIdentified.replace(':','');
             }
-
+            // system.debug( comment );
             tagIdentified = tagIdentified.trim();
 
             if (model instanceOf IDescriptionLinks
@@ -242,13 +245,21 @@ global class CodeDocumenter // implements Database.Batchable<SObject>  For Batch
 
                 // ignore anything after // style comments.  this allows hiding of tokens from ApexDoc.
                 integer ich = strLine.indexOf('//');
+                integer httpich = strLine.indexOf('://');
+
+                if (httpich == ich -1)
+                {
+                    // this is not a double slash comment.  It is a http://www.... or https://www..
+                    // Let this comment through.
+                    ich = -1;
+                }
 
                 if (ich > -1)
                 {
                     strLine = strLine.substring(0, ich);
                 }
 
-                // gather up our comments
+                // gather up the comments
                 if (strLine.startsWith('/**'))
                 {
                     commentsStarted = true;
@@ -278,6 +289,7 @@ global class CodeDocumenter // implements Database.Batchable<SObject>  For Batch
 
                 if (commentsStarted)
                 {
+                    // system.debug( 'adding strLine : '+strLine);
                     lstComments.add(strLine);
                     continue;
                 }
