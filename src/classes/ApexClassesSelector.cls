@@ -1,7 +1,7 @@
 /**
  * Class encapsulates query logic for ApexClass SObject
  *
- * https://developer.salesforce.com/page/Apex_Enterprise_Patterns_-_Selector_Layer
+ * {@link https://developer.salesforce.com/page/Apex_Enterprise_Patterns_-_Selector_Layer }
  **/
 public class ApexClassesSelector
     extends fflib_SObjectSelector
