@@ -120,6 +120,26 @@ public with sharing class ApexDocsServiceImpl
         return model;
     }
 
+//    // For now, I am commenting out this code.  It is a good idea, but fails because this method
+//    //  could be called in the constructor of the FileViewController.  When that happens, an
+//    //  exception is thrown -- "DML currently not allowed" -- and DML is not allowed at that point.
+//    private void verifyModelIsUpToDate(IFile model)
+//    {
+//        if (model instanceOf IApexFileInfo)
+//        {
+//            // find the ApexClass
+//            list<ApexClass> classes = ApexClassesSelector.newInstance().selectById( new set<id>{ model.getApexFileId() } );
+//
+//            // Compare the last modified dates between the two.
+//            if ( ! classes.isEmpty()
+//                && ((IApexFileInfo)model).getApexFileLastModifiedDate() != classes[0].lastModifiedDate )
+//            {
+//                // the code info model is out of date and needs to be updated before continuing.
+//                model = document(model);
+//            }
+//        }
+//    }
+
     /**
      *  @throw ApexDocsServiceException
      */
@@ -137,7 +157,12 @@ public with sharing class ApexDocsServiceImpl
             throw new ApexDocsServiceException('A file could not be found with the id of ['+classId+']');
         }
 
-        return assembleModel( apexDocRelatedAttachments[0] );
+        iFile model = assembleModel( apexDocRelatedAttachments[0] );
+
+        // Commented out for now.  See comments elsewhere in this class about the verifyModelIsUpToDate(IFile) method
+        //verifyModelIsUpToDate(model);
+
+        return model;
     }
 
     /**
@@ -161,7 +186,12 @@ public with sharing class ApexDocsServiceImpl
             throw new ApexDocsServiceException('A file could not be found with the name of \''+className+'\'');
         }
 
-        return assembleModel( apexDocRelatedAttachments[0] );
+        iFile model = assembleModel( apexDocRelatedAttachments[0] );
+
+        // Commented out for now.  See comments elsewhere in this class about the verifyModelIsUpToDate(IFile) method
+        //verifyModelIsUpToDate(model);
+
+        return model;
     }
 
     public list<IFile> findAllFiles()
