@@ -25,6 +25,16 @@ public with sharing class ApexDocsServiceImpl
 
         list<ClassLink__c> classLinkRecords = ClassLinksSelector.newInstance().selectByApexClassNameParent( new set<string>{ model.getName() } );
 
+        list<ApexClass> apexClasses = ApexClassesSelector.newInstance().selectById( new set<id>{ model.getApexFileId() } );
+
+        if ( ! apexClasses.isEmpty()
+            && model instanceOf IApexFileInfo
+            && apexClasses[0].lastmodifieddate == ((IApexFileInfo)model).getApexFileLastModifiedDate()
+            )
+        {
+            model.setIsModelCurrent(true);
+        }
+
         if (model instanceOf IImplementable)
         {
             ((IImplementable)model).getInterfacesImplemented().clear();

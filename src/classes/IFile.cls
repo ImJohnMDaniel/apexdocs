@@ -34,4 +34,20 @@ public interface IFile
      */
     boolean getIsInterface();
 
+    /**
+     *  Method is used to determine if the model information currently stored is up to date or
+     *  has there been an update to the Apex Class since the last documentation event.
+     *  @return boolean - true if the Apex Class and documented model information are in sync.
+     */
+    boolean getIsModelCurrent();
+
+    /**
+     *  convenience method to return same information as the getIsModelCurrent() method.
+     */
+    boolean isModelCurrent();
+
+    /**
+     *  Setter method for the isModelCurrent value
+     */
+    void setIsModelCurrent(final boolean isModelCurrent);
 }
