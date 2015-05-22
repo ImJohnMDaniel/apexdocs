@@ -405,7 +405,7 @@
                                     <dl>
                                         <dt><span class="strong">Parameters:</span></dt>
                                         <apex:repeat value="{! constructor.params }" var="param">
-                                            <dd><code>{! param }</code></dd>
+                                            <dd>{! param }</dd>
                                         </apex:repeat>
                                     </dl>
                                     </apex:outputPanel>
