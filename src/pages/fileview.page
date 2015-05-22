@@ -53,7 +53,8 @@
 
                 <div class="messageArea">
                     <apex:pageMessages />
-                    <apex:pageMessage severity="warning" title="Documentation is not current and needs to be refreshed" rendered="{! not(fileable.isModelCurrent) }" />
+                    <apex:pageMessage severity="warning" title="Documentation is not current and needs to be refreshed"
+                            rendered="{! not(fileable.isModelCurrent) && availableClasses.size > 0 && $CurrentPage.parameters.id != null }" />
                 </div>
 
                 <apex:outputPanel layout="none" rendered="{! isFileViewable }">
