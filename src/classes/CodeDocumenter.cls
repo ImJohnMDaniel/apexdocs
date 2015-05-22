@@ -268,7 +268,7 @@ global class CodeDocumenter // implements Database.Batchable<SObject>  For Batch
                 }
 
                 // determine if this is a non "documentable" comment
-                if (strLine.startsWith('/*'))
+                if ( ! commentsStarted && strLine.startsWith('/*'))
                 {
                     internalCommentsStarted = true;
                     lstComments.clear();
