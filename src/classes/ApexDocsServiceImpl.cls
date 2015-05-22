@@ -231,9 +231,18 @@ public with sharing class ApexDocsServiceImpl
     	CodeDocumenter.documentApexFiles(ApexClassesSelector.newInstance().selectAll());
     }
 
-    public void document(final IFile model)
+    public IFile document(final IFile model)
     {
-    	CodeDocumenter.documentApexFiles(ApexClassesSelector.newInstance().selectById(new set<id>{model.getApexFileId()}));
+        IFile outputModel = null;
+
+        list<ApexClass> classes = ApexClassesSelector.newInstance().selectById( new set<id>{model.getApexFileId()} );
+
+        if ( ! classes.isEmpty() )
+        {
+            outputModel = CodeDocumenter.documentApexFile( classes[0] );
+        }
+
+    	return outputModel;
     }
 
     public void reset()

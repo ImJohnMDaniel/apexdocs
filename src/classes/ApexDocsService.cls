@@ -62,9 +62,9 @@ public with sharing class ApexDocsService
         service().documentAll();
     }
 
-    public static void document(final IFile model)
+    public static IFile document(final IFile model)
     {
-        service().document( model );
+        return service().document( model );
     }
 
     public static void reset()
