@@ -271,6 +271,11 @@ public with sharing class ApexDocsServiceImpl
     	CodeDocumenter.documentApexFiles(ApexClassesSelector.newInstance().selectAll());
     }
 
+    public IFile document(final ApexClass clazz)
+    {
+        return CodeDocumenter.documentApexFile( clazz );
+    }
+
     public IFile document(final IFile model)
     {
         IFile outputModel = null;

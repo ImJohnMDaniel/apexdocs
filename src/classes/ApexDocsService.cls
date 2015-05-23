@@ -62,6 +62,11 @@ public with sharing class ApexDocsService
         service().documentAll();
     }
 
+    public static IFile document(final ApexClass clazz)
+    {
+        return service().document( clazz );
+    }
+
     public static IFile document(final IFile model)
     {
         return service().document( model );

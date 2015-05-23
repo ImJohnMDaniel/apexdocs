@@ -7,6 +7,7 @@ public interface IApexDocsService
     list<ClassLinkModel> findKnownImplementorsForFile(final IFile model);
     list<ClassLinkModel> findKnownThrowersOfExceptionForFile(final IFile model);
     void documentAll();
+    IFile document(final ApexClass clazz);
     IFile document(final IFile model);
     void reset();
 }

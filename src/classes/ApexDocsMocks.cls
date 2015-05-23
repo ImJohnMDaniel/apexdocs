@@ -215,6 +215,11 @@ public class ApexDocsMocks
             mocks.mockVoidMethod(this, 'documentAll', new List<Object>{});
         }
 
+        public IFile document(final ApexClass clazz)
+        {
+            return (IFile) mocks.mockNonVoidMethod(this, 'document', new List<Object>{ clazz });
+        }
+
         public IFile document(final IFile model)
         {
             return (IFile) mocks.mockNonVoidMethod(this, 'document', new List<Object>{ model });
