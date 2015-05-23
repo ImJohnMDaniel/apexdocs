@@ -19,6 +19,7 @@
         <members>ApexDocsUtils</members>
         <members>Application</members>
         <members>AttachmentsSelector</members>
+        <members>CLI</members>
         <members>ClassLinkModel</members>
         <members>ClassLinksSelector</members>
         <members>ClassModel</members>
