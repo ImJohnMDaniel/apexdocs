@@ -42,6 +42,7 @@
                     <li><a href="#">Deprecated</a></li>
                     <li><a href="#">Index</a></li>
                     <li><a href="#">Help</a></li>
+                    <li class="pull-right"><a href="/_ui/common/apex/debug/ApexCSIPage" target="devConsole">Development Console</a></li>
                     <li class="pull-right"><a href="/setup/forcecomHomepage.apexp?setupid=ForceCom" target="orgSetup">Setup</a></li>
                     <li class="pull-right"><a href="/home/home.jsp" target="orgHome">Home</a></li>
                     <apex:outputPanel layout="none" rendered="{! isFileViewable }">
