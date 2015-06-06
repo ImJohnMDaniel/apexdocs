@@ -36,7 +36,7 @@
             </layoutItems>
             <layoutItems>
                 <behavior>Edit</behavior>
-                <field>Related_Construct__c</field>
+                <field>RelatedConstruct__c</field>
             </layoutItems>
         </layoutColumns>
         <layoutColumns/>

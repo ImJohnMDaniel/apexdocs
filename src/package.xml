@@ -100,7 +100,7 @@
         <members>ClassLink__c.CoreApexLink__c</members>
         <members>ClassLink__c.LinksToName__c</members>
         <members>ClassLink__c.LinksTo__c</members>
-        <members>ClassLink__c.Related_Construct__c</members>
+        <members>ClassLink__c.RelatedConstruct__c</members>
         <members>ClassLink__c.Type__c</members>
         <members>CodeInfo__c.ApexClassId__c</members>
         <members>CodeInfo__c.FileName__c</members>

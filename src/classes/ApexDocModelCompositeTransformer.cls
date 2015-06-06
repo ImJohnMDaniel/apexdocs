@@ -55,7 +55,7 @@ public class ApexDocModelCompositeTransformer
         for (ClassLinkModel model : input)
         {
             classLink = createClassLinkRecord(model);
-            classLink.Related_Construct__c = apexConstructName;
+            classLink.RelatedConstruct__c = apexConstructName;
             output.add( classLink );
         }
 

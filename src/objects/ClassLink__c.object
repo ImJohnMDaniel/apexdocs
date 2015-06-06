@@ -116,7 +116,7 @@
         <type>Lookup</type>
     </fields>
     <fields>
-        <fullName>Related_Construct__c</fullName>
+        <fullName>RelatedConstruct__c</fullName>
         <description>The method or inner class that the class link may related to.  For example, a @throws link does not belong to a class but rather a method of a class.</description>
         <externalId>false</externalId>
         <inlineHelpText>The method or inner class that the class link may related to.  For example, a @throws link does not belong to a class but rather a method of a class.</inlineHelpText>

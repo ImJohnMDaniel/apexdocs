@@ -23,7 +23,7 @@ public with sharing class ClassLinksSelector
             ClassLink__c.LinksTo__c,
             ClassLink__c.LinksToName__c,
             ClassLink__c.Type__c,
-            ClassLink__c.Related_Construct__c
+            ClassLink__c.RelatedConstruct__c
         };
     }
 

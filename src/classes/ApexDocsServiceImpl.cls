@@ -103,26 +103,26 @@ public with sharing class ApexDocsServiceImpl
 
                 for (ClassLink__c classLinkRecord : classLinkRecords)
                 {
-                    if (ClassLinkModel.ClassLinkTypes.THROWING.name().equalsIgnoreCase( classLinkRecord.Type__c )
-                        && method.getNameLine().equalsIgnoreCase( classLinkRecord.Related_Construct__c )
-                        )
-                    {
-                        ((IThrows)method).getThrows().add( ApexDocModelCompositeTransformer.createClassLinkModel( classLinkRecord ) );
-                    }
+					if (ClassLinkModel.ClassLinkTypes.THROWING.name().equalsIgnoreCase( classLinkRecord.Type__c )
+					    && method.getNameLine().equalsIgnoreCase( classLinkRecord.RelatedConstruct__c )
+					    )
+					{
+					    ((IThrows)method).getThrows().add( ApexDocModelCompositeTransformer.createClassLinkModel( classLinkRecord ) );
+					}
 
-                    if (ClassLinkModel.ClassLinkTypes.SEEING.name().equalsIgnoreCase( classLinkRecord.Type__c )
-                        && method.getNameLine().equalsIgnoreCase( classLinkRecord.Related_Construct__c )
-                        )
-                    {
-                        ((ISees)method).getSees().add( ApexDocModelCompositeTransformer.createClassLinkModel( classLinkRecord ) );
-                    }
+					if (ClassLinkModel.ClassLinkTypes.SEEING.name().equalsIgnoreCase( classLinkRecord.Type__c )
+					    && method.getNameLine().equalsIgnoreCase( classLinkRecord.RelatedConstruct__c )
+					    )
+					{
+					    ((ISees)method).getSees().add( ApexDocModelCompositeTransformer.createClassLinkModel( classLinkRecord ) );
+					}
 
-		            if (ClassLinkModel.ClassLinkTypes.DESCRIPTION.name().equalsIgnoreCase( classLinkRecord.Type__c )
-		                && method.getNameLine().equalsIgnoreCase( classLinkRecord.Related_Construct__c )
-		                )
-		            {
-		                ((IDescriptionLinks)method).getDescriptionLinks().add( ApexDocModelCompositeTransformer.createClassLinkModel( classLinkRecord ) );
-		            }
+					if (ClassLinkModel.ClassLinkTypes.DESCRIPTION.name().equalsIgnoreCase( classLinkRecord.Type__c )
+					    && method.getNameLine().equalsIgnoreCase( classLinkRecord.RelatedConstruct__c )
+					    )
+					{
+					    ((IDescriptionLinks)method).getDescriptionLinks().add( ApexDocModelCompositeTransformer.createClassLinkModel( classLinkRecord ) );
+                    }
                 }
             }
         }
