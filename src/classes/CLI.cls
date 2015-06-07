@@ -1,5 +1,25 @@
+/**
+ *  This is a "command line interface" to the ApexDocs tool and represents the functions
+ *  that are exposed to subscriber's org default namespace.  The purpose of this class
+ *  is to expose various functions that could be used for debugging purposes and also
+ *  leaving a "design approach" to eventually open up true command line tasks like
+ *  a task that is part of a continous integration build to document and download all
+ *  classes.
+ *  @since 1.0
+ *  @author John M. Daniel
+ */
 global class CLI
 {
+    /**
+     * This method will perform a single file documentation.  The output of this command
+     * is a JSON serialized representation of the class that was just documented.  The main
+     * purpose of this method is provide a way to easily capture in a serialized form
+     * what the documented model looks like.  This can then be compared to the actual Apex class
+     * file for analysis.
+     *
+     * @param apexClassName - string name of the ApexClass that should be documented.
+     * @return JSON Serialized version of the documented class.
+     */
     global static string document(final string apexClassName)
     {
         string output = null;
@@ -20,15 +40,25 @@ global class CLI
         return output;
     }
 
+    /**
+     *  Method used to document all Apex classes in the default namespace of the org.
+     */
     global static void documentAll()
     {
         ApexDocsService.documentAll();
     }
 
+    /**
+     *  Method used to reset all data regarding previously documented class files.
+     */
     global static void reset()
     {
         ApexDocsService.reset();
     }
 
+    /**
+     *  Exception class used for CLI based tasks.  This is created to prevent the need for another
+     * class to be exposed to the subscriber org's default namespace as global.
+     */
     global class CLIException extends Exception { }
 }
