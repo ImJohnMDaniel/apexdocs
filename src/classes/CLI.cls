@@ -1,13 +1,23 @@
 global class CLI
 {
-    global static void document(final string apexClassName)
+    global static string document(final string apexClassName)
     {
+        string output = null;
+
         list<ApexClass> classes = ApexClassesSelector.newInstance().selectByName( new set<string>{ apexClassName });
 
         if ( ! classes.isEmpty() )
         {
-            ApexDocsService.document( classes[0] );
+            IFile classAsIFile = ApexDocsService.document( classes[0] );
+
+            output = classAsIFile != null ? JSON.SerializePretty( classAsIFile ) : null;
         }
+        else
+        {
+            throw new CLIException('Unable to find class named '+apexClassName);
+        }
+
+        return output;
     }
 
     global static void documentAll()
@@ -19,4 +29,6 @@ global class CLI
     {
         ApexDocsService.reset();
     }
+
+    global class CLIException extends Exception { }
 }
