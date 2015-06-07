@@ -1,4 +1,5 @@
-global class CodeDocumenter // implements Database.Batchable<SObject>  For Batch Mode, see note at the bottom of this class
+global class CodeDocumenter
+	implements Queueable //Database.Batchable<SObject>
 {
     public static list<string> rgstrScope { get; set; }
 
@@ -13,6 +14,9 @@ global class CodeDocumenter // implements Database.Batchable<SObject>  For Batch
         rgstrScope.add('prot'+'ected');
     }
 
+    private list<ApexClass> classListForProcessing = new list<ApexClass>();
+    private boolean isQueueableMode = false;
+
     // SObject's used by the logic in this service, listed in dependency order
     private static list<Schema.SObjectType> SERVICE_SOBJECTS =
                     new list<Schema.SObjectType>
@@ -25,7 +29,10 @@ global class CodeDocumenter // implements Database.Batchable<SObject>  For Batch
     private static string EXTENDS_KEYWORD_STRING = ' extends ';
     private static string IMPLEMENTS_KEYWORD_STRING = ' implements ';
 
-    private static string determineCompleteNameLine(final string strLine, final string fullFileBody)
+    // Setup a map of the classlinks organized first by the linksToName field and then related construct field
+    private map<string, map<string, ClassLink__c>> existingClassLinkRecordsMap = new map<string, map<string, ClassLink__c>>();
+
+    private string determineCompleteNameLine(final string strLine, final string fullFileBody)
     {
         // The "nameLine" is the complete declaration of the class or interface.
         //      It could span multiple lines.  We need to determine if the current
@@ -55,7 +62,38 @@ global class CodeDocumenter // implements Database.Batchable<SObject>  For Batch
         return nameLine;
     }
 
-    private static void fillModel ( IApexModel model, string name, list<string> lstComments )
+    private list<IFile> execute()
+    {
+        list<IFile> models = new list<IFile>();
+
+        list<ApexClass> classesToProcessInQueueableMode = new list<ApexClass>();
+
+        for (ApexClass clazz : classListForProcessing)
+        {
+            if ( ! this.isQueueableMode && clazz.LengthWithoutComments > 25000)
+            {
+                classesToProcessInQueueableMode.add(clazz);
+            }
+            else
+            {
+                models.add(parseApexClass(clazz));
+            }
+        }
+        system.debug('models.size = '+models.size());
+
+        persistFileModels(models);
+
+        resolveTheClassLinks();
+
+        if ( ! classesToProcessInQueueableMode.isEmpty() )
+        {
+            documentApexFilesInQueueableMode( classesToProcessInQueueableMode );
+        }
+
+        return models;
+    }
+
+    private void fillModel ( IApexModel model, string name, list<string> lstComments )
     {
         model.setNameLine(name);
         boolean inDescription = false;
@@ -163,7 +201,7 @@ global class CodeDocumenter // implements Database.Batchable<SObject>  For Batch
 
     }
 
-    private static list<ClassLinkModel> findImplementedInterfacesClassLinks(final string strLine)
+    private list<ClassLinkModel> findImplementedInterfacesClassLinks(final string strLine)
     {
         list<ClassLinkModel> output = new list<ClassLinkModel>();
 
@@ -180,7 +218,7 @@ global class CodeDocumenter // implements Database.Batchable<SObject>  For Batch
                 {
                 	if (string.isNotBlank(implementedInterface))
                 	{
-                        output.add(new ClassLinkModel(ClassLinkModel.ClassLinkTypes.IMPLEMENTING, implementedInterface));
+                        output.add(new ClassLinkModel(ClassLinkModel.ClassLinkTypes.IMPLEMENTING, implementedInterface.trim()));
                 	}
                 }
             }
@@ -189,7 +227,7 @@ global class CodeDocumenter // implements Database.Batchable<SObject>  For Batch
         return output;
     }
 
-    private static ClassLinkModel findExtendsClassLink(final string strLine)
+    private ClassLinkModel findExtendsClassLink(final string strLine)
     {
         ClassLinkModel output = null;
 
@@ -216,7 +254,7 @@ global class CodeDocumenter // implements Database.Batchable<SObject>  For Batch
         return output;
     }
 
-    private static IFile parseApexClass(ApexClass file)
+    private IFile parseApexClass(ApexClass file)
     {
         system.debug('@@@@ file.name == ' + file.name);
         try
@@ -497,7 +535,7 @@ global class CodeDocumenter // implements Database.Batchable<SObject>  For Batch
         return null;
     }
 
-    private static void persistFileModels(final list<IFile> fileModels)
+    private void persistFileModels(final list<IFile> fileModels)
     {
         set<string> apexFileNames = new set<string>();
 
@@ -506,39 +544,86 @@ global class CodeDocumenter // implements Database.Batchable<SObject>  For Batch
         CodeInfo__c codeInfoRecord = null;
 
         list<CodeInfo__c> codeInfoRecordList = new list<CodeInfo__c>();
+
         map<string, IFile> fileModelsByClassNameMap = new map<string, IFile>();
 
+        // Need to collect all fileModels that already exist
         for (IFile fileModel : fileModels)
         {
             if ( fileModel != null && ! string.isBlank( fileModel.getName() ) )
             {
                 fileModelsByClassNameMap.put( fileModel.getName(), fileModel );
             }
+        }
 
+        map<string, CodeInfo__c> existingCodeInfoRecordsMap = new map<string, CodeInfo__c>();
+
+        // get the existing CodeInfo__c records and organize them by name
+        list<CodeInfo__c> existingCodeInfoRecords = CodeInfosSelector.newInstance().selectByApexClassNameWithClassLinks(fileModelsByClassNameMap.keySet());
+
+        for (CodeInfo__c existingCodeInfoRecord : existingCodeInfoRecords)
+        {
+            existingCodeInfoRecordsMap.put( existingCodeInfoRecord.FileName__c, existingCodeInfoRecord);
+
+            // update the existingClassLinkRecordsMap with all of these existing class links
+            for (ClassLink__c classLink : existingCodeInfoRecord.ClassLinks__r)
+            {
+                if ( ! existingClassLinkRecordsMap.containsKey(classLink.LinksToName__c))
+                {
+                    existingClassLinkRecordsMap.put(classLink.LinksToName__c, new map<string, ClassLink__c>());
+                }
+
+                existingClassLinkRecordsMap.get(classLink.LinksToName__c).put(classLink.RelatedConstruct__c, classLink);
+            }
+        }
+
+        // process each of the fileModels
+        for (IFile fileModel : fileModels)
+        {
             system.debug(fileModel);
+
             if (fileModel != null)
             {
-                apexFileNames.add(fileModel.getName());
-
+                // convert the rudimentary information of the model to a CodeInfo__c record.
                 codeInfoRecord = ApexDocModelCompositeTransformer.convertDomainModelToSObject(fileModel);
 
                 codeInfoRecordList.add( codeInfoRecord );
 
-                uow.registerNew( codeInfoRecord );
+                //system.debug(logginglevel.error, 'existingCodeInfoRecordsMap.containsKey(\''+codeInfoRecord.FileName__c+'\') = ' + existingCodeInfoRecordsMap.containsKey(codeInfoRecord.FileName__c));
 
+                // Does this codeInfoRecord already exist?
+                if ( existingCodeInfoRecordsMap.containsKey(codeInfoRecord.FileName__c) )
+                {
+                    // This record already exists
+                    codeInfoRecord.id = existingCodeInfoRecordsMap.get(codeInfoRecord.FileName__c).id;
+                    uow.registerDirty( codeInfoRecord );
+
+                    // Remove any previous json representations of the fileModel
+                    uow.registerDeleted( existingCodeInfoRecordsMap.get(codeInfoRecord.FileName__c).Attachments );
+                }
+                else
+                {
+                    // This record does not yet exist.
+                    uow.registerNew( codeInfoRecord );
+                }
+
+                // convert the entire model into an Attachment record and register it to the parent CodeInfo__c record.
                 uow.registerNew( ApexDocModelCompositeTransformer.convertDomainModelToAttachment(fileModel)
                                 , Attachment.ParentId
                                 , codeInfoRecord
                                 );
 
+
+                // Start finding any related ClassLinks
+                // Is there a ClassLink for an extensible?
                 if (fileModel instanceOf IExtensible && ((IExtensible)fileModel).getExtends() != null)
                 {
-                    uow.registerNew( ApexDocModelCompositeTransformer.createClassLinkRecord( ((IExtensible)fileModel).getExtends()  )
-                                    , ClassLink__c.CodeInfo__c
-                                    , codeInfoRecord
-                                    );
+                    registerClassLinkWithUOW( ApexDocModelCompositeTransformer.createClassLinkRecord( ((IExtensible)fileModel).getExtends()  )
+                                            , codeInfoRecord
+                                            , uow);
                 }
 
+                // Are there any ClassLinks for implementables?
                 if (fileModel instanceOf IImplementable
                     && ((IImplementable)fileModel).getInterfacesImplemented() != null
                     && ! ((IImplementable)fileModel).getInterfacesImplemented().isEmpty())
@@ -547,13 +632,13 @@ global class CodeDocumenter // implements Database.Batchable<SObject>  For Batch
 
                     for (ClassLink__c classLinkRecord : classLinkRecords)
                     {
-                        uow.registerNew( classLinkRecord
-                                        , ClassLink__c.CodeInfo__c
-                                        , codeInfoRecord
-                                        );
+                        registerClassLinkWithUOW( classLinkRecord
+                                                , codeInfoRecord
+                                                , uow);
                     }
                 }
 
+                // Are there any ClassLinks for seeables??
                 if (fileModel instanceOf ISees
                     && ((ISees)fileModel).getSees() != null
                     && ! ((ISees)fileModel).getSees().isEmpty())
@@ -562,13 +647,13 @@ global class CodeDocumenter // implements Database.Batchable<SObject>  For Batch
 
                     for (ClassLink__c classLinkRecord : classLinkRecords)
                     {
-                        uow.registerNew( classLinkRecord
-                                        , ClassLink__c.CodeInfo__c
-                                        , codeInfoRecord
-                                        );
+                        registerClassLinkWithUOW( classLinkRecord
+                                                , codeInfoRecord
+                                                , uow);
                     }
                 }
 
+                // Are there any ClassLinks for links in descriptions??
                 if (fileModel instanceOf IDescriptionLinks
                     && ((IDescriptionLinks)fileModel).getDescriptionLinks() != null
                     && ! ((IDescriptionLinks)fileModel).getDescriptionLinks().isEmpty())
@@ -577,13 +662,13 @@ global class CodeDocumenter // implements Database.Batchable<SObject>  For Batch
 
                     for (ClassLink__c classLinkRecord : classLinkRecords)
                     {
-                        uow.registerNew( classLinkRecord
-                                        , ClassLink__c.CodeInfo__c
-                                        , codeInfoRecord
-                                        );
+                        registerClassLinkWithUOW( classLinkRecord
+                                                , codeInfoRecord
+                                                , uow);
                     }
                 }
 
+                // Need to check all of the methods for any related ClassLinks
                 if (fileModel instanceOf IMethods
                     && ((IMethods)fileModel).getMethods() != null
                     && ! ((IMethods)fileModel).getMethods().isEmpty())
@@ -592,42 +677,42 @@ global class CodeDocumenter // implements Database.Batchable<SObject>  For Batch
 
                     for (MethodModel method : ((IMethods)fileModel).getMethods())
                     {
+                        // Are there any ClassLinks for throwables??
                         if ( ! method.getThrows().isEmpty() )
                         {
                             classLinkRecords = ApexDocModelCompositeTransformer.createClassLinkRecords( method.getThrows(), method.getNameLine() );
 
                             for (ClassLink__c classLinkRecord : classLinkRecords)
                             {
-                                uow.registerNew( classLinkRecord
-                                                , ClassLink__c.CodeInfo__c
-                                                , codeInfoRecord
-                                                );
+                                registerClassLinkWithUOW( classLinkRecord
+                                                        , codeInfoRecord
+                                                        , uow);
                             }
                         }
 
+                        // Are there any ClassLinks for seeables in methods??
                         if ( ! method.getSees().isEmpty() )
                         {
                             classLinkRecords = ApexDocModelCompositeTransformer.createClassLinkRecords( method.getSees(), method.getNameLine() );
 
                             for (ClassLink__c classLinkRecord : classLinkRecords)
                             {
-                                uow.registerNew( classLinkRecord
-                                                , ClassLink__c.CodeInfo__c
-                                                , codeInfoRecord
-                                                );
+                                registerClassLinkWithUOW( classLinkRecord
+                                                        , codeInfoRecord
+                                                        , uow);
                             }
                         }
 
+                        // Are there any ClassLinks for links in method descriptions??
                         if ( ! method.getDescriptionLinks().isEmpty() )
                         {
                             classLinkRecords = ApexDocModelCompositeTransformer.createClassLinkRecords( method.getDescriptionLinks(), method.getNameLine() );
 
                             for (ClassLink__c classLinkRecord : classLinkRecords)
                             {
-                                uow.registerNew( classLinkRecord
-                                                , ClassLink__c.CodeInfo__c
-                                                , codeInfoRecord
-                                                );
+                                registerClassLinkWithUOW( classLinkRecord
+                                                        , codeInfoRecord
+                                                        , uow);
                             }
                         }
                     }
@@ -635,16 +720,9 @@ global class CodeDocumenter // implements Database.Batchable<SObject>  For Batch
             }
         }
 
-        // Register all of Code Info records for these particular files to be
-        //      deleted.  Do this so that there are no duplicates.
-        list<CodeInfo__c> codeInfoRecordsToDelete = CodeInfosSelector.newInstance().selectByApexClassNameWithClassLinks(apexFileNames);
-        for (CodeInfo__c codeInfo : codeInfoRecordsToDelete)
-        {
-            uow.registerDeleted(codeInfo);
-        }
-
         uow.commitWork();
 
+        // Now that all records have been saved, we need to update the IFile.id links to reflect the new CodeInfo__c id values.
         for (CodeInfo__c codeInfoRecordPostDML : codeInfoRecordList)
         {
             if ( fileModelsByClassNameMap.containsKey( codeInfoRecordPostDML.FileName__c ) )
@@ -656,7 +734,36 @@ global class CodeDocumenter // implements Database.Batchable<SObject>  For Batch
 
     }
 
-    private static void resolveTheClassLinks()
+    private void registerClassLinkWithUOW(ClassLink__c classLinkRecord, CodeInfo__c codeInfoRecord, fflib_SObjectUnitOfWork uow)
+    {
+        //system.debug(logginglevel.error, existingClassLinkRecordsMap.keyset());
+        //system.debug(logginglevel.error, classLinkRecord);
+        //system.debug(logginglevel.error, 'this.existingClassLinkRecordsMap.containsKey(classLinkRecord.LinksToName__c) = ' + this.existingClassLinkRecordsMap.containsKey(classLinkRecord.LinksToName__c));
+        
+        if (this.existingClassLinkRecordsMap.containsKey(classLinkRecord.LinksToName__c))
+        {
+            system.debug(logginglevel.error, 'this.existingClassLinkRecordsMap.get(classLinkRecord.LinksToName__c).containsKey(classLinkRecord.RelatedConstruct__c) = ' + this.existingClassLinkRecordsMap.get(classLinkRecord.LinksToName__c).containsKey(classLinkRecord.RelatedConstruct__c));
+        }
+
+        if (this.existingClassLinkRecordsMap.containsKey(classLinkRecord.LinksToName__c)
+            && this.existingClassLinkRecordsMap.get(classLinkRecord.LinksToName__c).containsKey(classLinkRecord.RelatedConstruct__c)
+            )
+        {
+            // this link already exists
+            classLinkRecord.id = this.existingClassLinkRecordsMap.get(classLinkRecord.LinksToName__c).get(classLinkRecord.RelatedConstruct__c).id;
+            uow.registerDirty( classLinkRecord );
+        }
+        else
+        {
+            // this link is new
+            uow.registerNew( classLinkRecord
+                            , ClassLink__c.CodeInfo__c
+                            , codeInfoRecord
+                            );
+        }
+    }
+
+    private void resolveTheClassLinks()
     {
         // Find all of the class links that have not been resolved
         list<ClassLink__c> classLinksNeedingToBeResolved = ClassLinksSelector.newInstance().selectByLinksNotResolved();
@@ -696,7 +803,7 @@ global class CodeDocumenter // implements Database.Batchable<SObject>  For Batch
 
     }
 
-    private static boolean strContainsScope(final string str)
+    private boolean strContainsScope(final string str)
     {
         system.debug('str == '+str);
 
@@ -710,28 +817,16 @@ global class CodeDocumenter // implements Database.Batchable<SObject>  For Batch
         return false;
     }
 
-    public static list<IFile> documentApexFiles(final list<ApexClass> files)
+    private CodeDocumenter()
     {
-    	if (files == null)
-        {
-            throw new CodeDoumenterException('The files parameter for the documentApexFiles(list<ApexClass>) method cannot be null.');
-        }
 
-        list<IFile> models = new list<IFile>();
-
-        for (ApexClass file : files)
-        {
-            models.add(parseApexClass(file));
-        }
-        system.debug('models.size = '+models.size());
-
-        persistFileModels(models);
-
-        resolveTheClassLinks();
-
-        return models;
     }
 
+    private CodeDocumenter(final list<ApexClass> classList, final boolean isQueueableMode)
+    {
+        this.classListForProcessing.addAll(classList);
+        this.isQueueableMode = isQueueableMode;
+    }
 
     public static IFile documentApexFile(final ApexClass file)
     {
@@ -739,7 +834,7 @@ global class CodeDocumenter // implements Database.Batchable<SObject>  For Batch
 
         IFile model = null;
 
-        if (IFiles != null)
+        if (IFiles != null && ! IFiles.isEmpty())
         {
             model = IFiles[0];
         }
@@ -747,6 +842,56 @@ global class CodeDocumenter // implements Database.Batchable<SObject>  For Batch
         return model;
     }
 
+    public static list<IFile> documentApexFiles(final list<ApexClass> apexClasses)
+    {
+    	if (apexClasses == null)
+        {
+            throw new CodeDoumenterException('The files parameter for the documentApexFiles(list<ApexClass>) method cannot be null.');
+        }
+
+        return ( new CodeDocumenter( apexClasses, false ) ).execute();
+    }
+
+    public static id documentApexFilesInQueueableMode(final list<ApexClass> apexClasses)
+    {
+        return System.enqueueJob(new CodeDocumenter( apexClasses, true ));
+    }
+
+    public void execute(QueueableContext context)
+    {
+        execute();
+    }
+
+//    global Database.QueryLocator start(Database.BatchableContext BC)
+//    {
+//        classIdSetForBatchProcessing
+//
+//        return Database.getQueryLocator( ApexClassesSelector.newInstance().selectAllQuery() );
+//    }
+//
+//    global void execute(Database.BatchableContext BC, List<sObject> scope)
+//    {
+//        list<IFile> models = new list<IFile>();
+//
+//        for (ApexClass file : (list<ApexClass>)scope)
+//        {
+//            models.add(parseApexClass(file));
+//        }
+//        system.debug('models.size = '+models.size());
+//
+//        persistFileModels(models);
+//    }
+//
+//    global void finish(Database.BatchableContext BC)
+//    {
+//        resolveTheClassLinks();
+//    }
+//
+//    public static void documentApexFilesInBatchMode(final set<id> apexClassIds)
+//    {
+//        Database.executeBatch(new CodeDocumenter(apexClassIds), 20);
+//    }
+//
     /**
      *  @description This is the standard exception that will be thrown by the
      *      CodeDoumenter class
