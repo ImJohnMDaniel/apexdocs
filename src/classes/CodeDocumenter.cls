@@ -868,6 +868,18 @@ global class CodeDocumenter
 
     public static id documentApexFilesInQueueableMode(final list<ApexClass> apexClasses)
     {
+        // Collect the class names and delete any JSON representations of the classes' Object Model.  This will ensure that
+        // the current thread does not use the old version while the new version is being created in the Queue.
+        set<string> clazzNameSet = new set<string>();
+
+        for (ApexClass clazz : apexClasses)
+        {
+            clazzNameSet.add(clazz.name);
+        }
+
+        delete AttachmentsSelector.newInstance().selectByApexClassNameParent(clazzNameSet);
+
+        // now go a start to create new JSON representations of the classes' Object Model
         return System.enqueueJob(new CodeDocumenter( apexClasses, true ));
     }
 
