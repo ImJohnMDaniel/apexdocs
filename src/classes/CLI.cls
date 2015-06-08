@@ -4,7 +4,7 @@
  *  is to expose various functions that could be used for debugging purposes and also
  *  leaving a "design approach" to eventually open up true command line tasks like
  *  a task that is part of a continous integration build to document and download all
- *  classes.
+ *  classes via the Force.com CLI tool ({@link https://force-cli.heroku.com/}).
  *  @since 1.0
  *  @author John M. Daniel
  */
