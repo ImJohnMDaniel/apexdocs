@@ -70,12 +70,18 @@ global class CodeDocumenter
 
         for (ApexClass clazz : classListForProcessing)
         {
-            if ( ! this.isQueueableMode && clazz.LengthWithoutComments > 25000)
+            // if the execution context is not currently in QueueableMode
+            if ( ! this.isQueueableMode
+                // send this to Queuable if its size is greater than the threshold.
+                && clazz.LengthWithoutComments > 25000
+                // but only if we are processing more than one class.
+                && classListForProcessing.size() > 1)
             {
                 classesToProcessInQueueableMode.add(clazz);
             }
             else
             {
+                // otherwise process the class in the current context.
                 models.add(parseApexClass(clazz));
             }
         }
@@ -313,6 +319,12 @@ global class CodeDocumenter
                     continue;
                 }
 
+                // ignore "double slash" type comments
+                if ( ! commentsStarted && strLine.startsWith('//') )
+                {
+                    continue;
+                }
+
                 if (commentsStarted && strLine.endsWith('*/'))
                 {
                     commentsStarted = false;
@@ -363,7 +375,9 @@ global class CodeDocumenter
                     continue;
 
                 // look for a class
-                if ( ! fileParsed && strLine.containsIgnoreCase(' class '))
+                if ( ! fileParsed
+                    && strLine.containsIgnoreCase(' class ')
+                    )
                 {
                     fileParsed = true;
                     fileModel = new ClassModel();
@@ -739,7 +753,7 @@ global class CodeDocumenter
         //system.debug(logginglevel.error, existingClassLinkRecordsMap.keyset());
         //system.debug(logginglevel.error, classLinkRecord);
         //system.debug(logginglevel.error, 'this.existingClassLinkRecordsMap.containsKey(classLinkRecord.LinksToName__c) = ' + this.existingClassLinkRecordsMap.containsKey(classLinkRecord.LinksToName__c));
-        
+
         if (this.existingClassLinkRecordsMap.containsKey(classLinkRecord.LinksToName__c))
         {
             system.debug(logginglevel.error, 'this.existingClassLinkRecordsMap.get(classLinkRecord.LinksToName__c).containsKey(classLinkRecord.RelatedConstruct__c) = ' + this.existingClassLinkRecordsMap.get(classLinkRecord.LinksToName__c).containsKey(classLinkRecord.RelatedConstruct__c));
