@@ -78,6 +78,7 @@ global class CodeDocumenter
                 && classListForProcessing.size() > 1)
             {
                 classesToProcessInQueueableMode.add(clazz);
+                models.add(new FileModel(null, clazz.name, FileModel.class, clazz.id));
             }
             else
             {
@@ -99,7 +100,7 @@ global class CodeDocumenter
         return models;
     }
 
-    private void fillModel ( IApexModel model, string name, list<string> lstComments )
+    private void fillModel( IApexModel model, string name, list<string> lstComments )
     {
         model.setNameLine(name);
         boolean inDescription = false;
@@ -619,6 +620,13 @@ global class CodeDocumenter
                 {
                     // This record does not yet exist.
                     uow.registerNew( codeInfoRecord );
+                }
+
+                if (fileModel instanceOf FileModel)
+                {
+                    // If this is the case, then the model is simply a "placeholder" of sorts to store in the database.
+                    // It is most likely the case that the model is being processed but under a different execution context.
+                    continue;
                 }
 
                 // convert the entire model into an Attachment record and register it to the parent CodeInfo__c record.

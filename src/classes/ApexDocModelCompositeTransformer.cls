@@ -144,7 +144,16 @@ public class ApexDocModelCompositeTransformer
         CodeInfo__c output = new CodeInfo__c();
 
         output.filename__c = input.getName();
-        output.ModelType__c = ((ApexConstructBaseModel)input).getClassType().getName();
+
+        if (input instanceOf FileModel)
+        {
+            output.ModelType__c = ClassModel.class.getName();
+        }
+        else
+        {
+            output.ModelType__c = ((ApexConstructBaseModel)input).getClassType().getName();
+        }
+
         output.ApexClassId__c = input.getApexFileId();
 
         return output;
