@@ -12,6 +12,14 @@ public with sharing class FileViewController
     	}
     }
 
+    public boolean isMessagesAvailable
+    {
+        get
+        {
+            return ApexPages.hasMessages();
+        }
+    }
+
     public list<IFile> getAvailableClasses()
     {
         return ApexDocsService.findAllFiles();
@@ -119,6 +127,10 @@ public with sharing class FileViewController
         		system.debug(adse.getCause() == null ? adse.getMessage() : adse.getCause().getMessage());
         		ApexPages.addMessages(adse);
         	}
+        }
+        else if (fileName == null && ApexPages.currentPage().getParameters().containsKey( PARAM_CODE_INFO_REFRESH.toLowerCase() ))
+        {
+            ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.INFO,'All Apex code has been documented.'));
         }
     }
 
@@ -232,9 +244,15 @@ public with sharing class FileViewController
         return nextPage;
     }
 
-    public void refreshAll()
+    public PageReference refreshAll()
     {
         ApexDocsService.documentAll();
-        ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.INFO,'All Apex code has been documented.'));
+
+        PageReference nextPage = ApexPages.currentPage();
+
+        nextPage.getParameters().put(PARAM_CODE_INFO_REFRESH, 'true' );
+        nextPage.setRedirect(true);
+
+        return nextPage;
     }
 }

@@ -1,12 +1,12 @@
 <apex:page standardController="CodeInfo__c" extensions="FileViewController"
-    showHeader="false" sidebar="false" standardStylesheets="false" docType="html-5.0">
+        showHeader="false" sidebar="false" standardStylesheets="false" docType="html-5.0">
     <head>
         <meta charset="utf-8" />
         <apex:outputPanel layout="none" rendered="{! isFileViewable }">
-        <title>{! apexModelable.name }</title>
+            <title>{! apexModelable.name }</title>
         </apex:outputPanel>
         <apex:outputPanel layout="none" rendered="{! not(isFileViewable) }">
-        <title>Apex Docs</title>
+            <title>Apex Docs</title>
         </apex:outputPanel>
         <style type="text/css">
             .messageArea ul {
@@ -19,19 +19,19 @@
     <apex:includeScript value="{!urlfor($Resource.apexdocsjquery, 'js/jquery.js')}"/>
     <apex:includeScript value="{!urlfor($Resource.apexdocsbootstrap, 'js/bootstrap.js')}"/>
     <apex:form >
-
-    <div class="container-fluid">
-        <div class="row-fluid">
-            <div class="span2" style="overflow:auto;">
+    <apex:outputPanel styleClass="container-fluid" layout="block">
+        <apex:outputPanel styleClass="row-fluid" layout="block">
+            <apex:outputPanel id="allClassesPanel" styleClass="span2" style="overflow:auto;" layout="block">
                 <!--Sidebar content-->
                 <h4>All Classes</h4>
+
                 <apex:dataList value="{! availableClasses }" var="classFile" styleClass="unstyled">
                     <apex:outputLink value="{! urlfor( $CurrentPage.name, null, ['id'=classFile.id])  }" >
                         <apex:outputText value="<em>{! classFile.name }</em>" escape="false" rendered="{! classFile.isInterface }" />
                         <apex:outputText value="{!classFile.name}" rendered="{! not(classFile.isInterface) }" />
                     </apex:outputLink>
                 </apex:dataList>
-            </div>
+            </apex:outputPanel>
             <div class="span10">
                 <!--Body content-->
                 <ul class="nav nav-pills">
@@ -52,11 +52,9 @@
                     <li class="pull-right"><apex:commandLink action="{!refreshAll}" value="Refresh All Docs"/></li>
                 </ul>
 
-                <div class="messageArea">
-                    <apex:pageMessages />
-                    <apex:pageMessage severity="warning" title="Documentation is not current and needs to be refreshed"
-                            rendered="{! not(fileable.isModelCurrent) && availableClasses.size > 0 && $CurrentPage.parameters.id != null }" />
-                </div>
+                <apex:pageMessages />
+                <apex:pageMessage severity="warning" title="Documentation is not current and needs to be refreshed"
+                        rendered="{! not(fileable.isModelCurrent) && availableClasses.size > 0 && $CurrentPage.parameters.id != null }" />
 
                 <apex:outputPanel layout="none" rendered="{! isFileViewable }">
                 <div>
@@ -481,8 +479,8 @@
                 </div>
                 </apex:outputPanel>
             </div>
-        </div>
-    </div>
+        </apex:outputPanel>
+    </apex:outputPanel>
     </apex:form>
 
 </apex:page>
