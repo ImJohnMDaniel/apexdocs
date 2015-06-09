@@ -12,6 +12,7 @@ global class CodeDocumenter
         rgstrScope.add('glo'+'bal');
         rgstrScope.add('pub'+'lic');
         rgstrScope.add('prot'+'ected');
+        rgstrScope.add('webse'+'rvice');
     }
 
     private list<ApexClass> classListForProcessing = new list<ApexClass>();
@@ -469,7 +470,7 @@ global class CodeDocumenter
                     //system.debug(logginglevel.error, '\n\nlstComments = '+lstComments+'\nstrLine = '+strLine+'\n\n');
                     fillModel(mModel, strLine, lstComments);
                     //system.debug(logginglevel.error, 'mModel == '+mModel);
-                    methods.add(mModel);
+                        methods.add(mModel);
                     lstComments.clear();
                     continue;
                 }
@@ -481,7 +482,7 @@ global class CodeDocumenter
                 {
                     ConstructorModel constructorModel = new ConstructorModel();
                     fillModel(constructorModel, strLine, lstComments);
-                    constructors.add(constructorModel);
+                        constructors.add(constructorModel);
                     lstComments.clear();
                     continue;
                 }
@@ -493,7 +494,7 @@ global class CodeDocumenter
                     // must be a property of a Class
                     PropertyModel propertyModel = new PropertyModel();
                     fillModel(propertyModel, strLine, lstComments);
-                    properties.add(propertyModel);
+                        properties.add(propertyModel);
                     lstComments.clear();
                     continue;
                 }
