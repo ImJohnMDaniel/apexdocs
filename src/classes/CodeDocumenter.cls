@@ -373,7 +373,9 @@ global class CodeDocumenter
                 if ( ! strContainsScope(strLine)
                     && ! (fileModel instanceOf InterfaceModel)
                     )
+                {
                     continue;
+                }
 
                 // look for a class
                 if ( ! fileParsed
@@ -831,7 +833,9 @@ global class CodeDocumenter
 
         for (string aScope : rgstrScope )
         {
-            if (str.containsIgnoreCase(aScope))
+            // does the string (str) contain aScope plus the single space?
+            //      Including the space eliminates words like "getGlobalDescribe"
+            if (str.containsIgnoreCase(aScope + ' '))
             {
                 return true;
             }
