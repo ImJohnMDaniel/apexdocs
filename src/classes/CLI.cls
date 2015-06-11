@@ -56,6 +56,22 @@ global class CLI
         ApexDocsService.reset();
     }
 
+    global static string find(final string apexClassName)
+    {
+        string output = null;
+
+        try
+        {
+            output = JSON.SerializePretty(ApexDocsService.getClass(apexClassName));
+        }
+        catch (ApexDocsServiceException adse)
+        {
+            throw new CLIException('Error while trying to find class named '+apexClassName);
+        }
+
+        return output;
+    }
+
     /**
      *  Exception class used for CLI based tasks.  This is created to prevent the need for another
      * class to be exposed to the subscriber org's default namespace as global.
