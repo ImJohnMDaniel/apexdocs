@@ -42,6 +42,11 @@ public with sharing class ApexDocsService
         return service().findAllFiles();
     }
 
+    public static list<IFile> findAllOuterClasses()
+    {
+        return service().findAllOuterClasses();
+    }
+
     public static list<ClassLinkModel> findKnownSubClassesForFile(final IFile model)
     {
         return service().findKnownSubClassesForFile( model );

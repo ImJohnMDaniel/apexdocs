@@ -86,7 +86,7 @@ public with sharing class ApexDocsServiceImpl
             {
                 ((IThrows)model).getThrows().add( ApexDocModelCompositeTransformer.createClassLinkModel( classLinkRecord ) );
             }
-        }
+            }
 
         if (model instanceOf IMethods
             && ((IMethods)model).getMethods() != null
@@ -209,6 +209,23 @@ public with sharing class ApexDocsServiceImpl
         final list<IFile> files = new list<IFile>();
 
         for (CodeInfo__c obj : CodeInfosSelector.newInstance().selectAll())
+        {
+            files.add(new FileModel(obj.id, obj.FileName__c, Type.forName(obj.ModelType__c), obj.ApexClassId__c));
+        }
+
+        return files;
+    }
+
+    public list<IFile> findAllOuterClasses()
+    {
+        final list<IFile> files = new list<IFile>();
+
+        set<string> modelTypes = new set<string>();
+
+        modelTypes.add( ClassModel.class.getName() );
+        modelTypes.add( InterfaceModel.class.getName() );
+
+        for (CodeInfo__c obj : CodeInfosSelector.newInstance().selectByModelType(modelTypes))
         {
             files.add(new FileModel(obj.id, obj.FileName__c, Type.forName(obj.ModelType__c), obj.ApexClassId__c));
         }

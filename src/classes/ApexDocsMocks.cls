@@ -57,17 +57,22 @@ public class ApexDocsMocks
 
         public list<CodeInfo__c> selectById(set<ID> idSet)
         {
-            return (list<CodeInfo__c>) mocks.mockNonVoidMethod(this, 'selectById', new List<Object>{idSet});
+            return (list<CodeInfo__c>) mocks.mockNonVoidMethod(this, 'selectById', new List<Object>{ idSet });
         }
 
         public list<CodeInfo__c> selectByApexClassNameWithClassLinks(set<string> fileNameSet)
         {
-            return (list<CodeInfo__c>) mocks.mockNonVoidMethod(this, 'selectByApexClassNameWithClassLinks', new List<Object>{fileNameSet});
+            return (list<CodeInfo__c>) mocks.mockNonVoidMethod(this, 'selectByApexClassNameWithClassLinks', new List<Object>{ fileNameSet });
         }
 
         public list<CodeInfo__c> selectAll()
         {
             return (list<CodeInfo__c>) mocks.mockNonVoidMethod(this, 'selectAll', new List<Object>{});
+        }
+
+        public list<CodeInfo__c> selectByModelType(final set<string> modelTypes)
+        {
+            return (list<CodeInfo__c>) mocks.mockNonVoidMethod(this, 'selectByModelType', new List<Object>{ modelTypes });
         }
 
         public list<Schema.FieldSet> getSObjectFieldSetList()
