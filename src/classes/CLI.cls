@@ -72,6 +72,24 @@ global class CLI
         return output;
     }
 
+    global static string findRawJsonModelRepresentation(final string apexClassName)
+    {
+        string output = null;
+
+        try
+        {
+            list<Attachment> apexDocRelatedAttachments = AttachmentsSelector.newInstance().selectByApexClassNameParent( new set<string>{ apexClassName } );
+
+            output = apexDocRelatedAttachments[0].body.toString();
+        }
+        catch (Exception e)
+        {
+            throw new CLIException('Error while trying to find class named '+apexClassName+' \n\n\n'+e.getMessage());
+        }
+
+        return output;
+    }
+
     /**
      *  Exception class used for CLI based tasks.  This is created to prevent the need for another
      * class to be exposed to the subscriber org's default namespace as global.
