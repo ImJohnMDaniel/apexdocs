@@ -9,7 +9,7 @@ public class ClassLinkModel
 {
 	public enum ClassLinkTypes
 	{
-		EXTENDING, IMPLEMENTING, SEEING, THROWING, DESCRIPTION
+		EXTENDING, IMPLEMENTING, SEEING, THROWING, DESCRIPTION, OUTERCLASS, INNERCLASS
 	}
 
     private ClassLinkModel.ClassLinkTypes linkType;
@@ -38,9 +38,8 @@ public class ClassLinkModel
     }
 
     /**
-     *  @description The main constructor
+     *  The main constructor
      *  @date 18 MARCH 2015
-     *  @see Something
      *  @param the link type expressed as one of the ClassLinkModel.ClassLinkTypes ENUM values
      *  @param the string name of the class that this links to.
      */

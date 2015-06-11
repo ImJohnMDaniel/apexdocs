@@ -30,6 +30,12 @@ global class CodeDocumenter
     private static string EXTENDS_KEYWORD_STRING = ' extends ';
     private static string IMPLEMENTS_KEYWORD_STRING = ' implements ';
 
+    // a map of nested class string lines grouped by the inner class' outer Apex class id and then the inner class name.
+    private map<id, map<string, list<string>>> nestedClassLineMap = new map<id, map<string, list<string>>>();
+
+    // a map of Apex classes that serve as outer classes to any inner classes encountered
+    private map<id, ApexClass> outerClassByIdMap = new map<id, ApexClass>();
+
     // Setup a map of the classlinks organized first by the linksToName field and then related construct field
     private map<string, map<string, ClassLink__c>> existingClassLinkRecordsMap = new map<string, map<string, ClassLink__c>>();
 
@@ -84,9 +90,25 @@ global class CodeDocumenter
             else
             {
                 // otherwise process the class in the current context.
-                models.add(parseApexClass(clazz));
+                models.add(parseApexClass(clazz, false));
+
+                // process any nested classes that are present.
+                if (this.nestedClassLineMap.containsKey(clazz.id))
+                {
+                    for (string nestedClassName : this.nestedClassLineMap.get(clazz.id).keyset())
+                    {
+                        ApexClass nestedClazz = new ApexClass();
+
+                        nestedClazz.id = clazz.id;
+                        nestedClazz.Name = clazz.name + '.' + nestedClassName;
+                        nestedClazz.Body = String.join(this.nestedClassLineMap.get(clazz.id).get(nestedClassName), '\n');
+
+                        models.add( parseApexClass(nestedClazz, true ) );
+                    }
+                }
             }
         }
+
         system.debug('models.size = '+models.size());
 
         persistFileModels(models);
@@ -235,6 +257,43 @@ global class CodeDocumenter
         return output;
     }
 
+    private ClassLinkModel findInnerClassLink(final string strLine, final string outerClassName)
+    {
+        ClassLinkModel output = null;
+
+        string innerClassName = strLine.substringBetween('class ', ' ');
+        system.debug('innerClassName = '+innerClassName);
+
+        if (innerClassName == null)
+        {
+            // then there was no space after the innerClassName.  It was the EOL.
+            // try again considering that use case
+            innerClassName = strLine.substringAfter('class ');
+        }
+
+        if (innerClassName == null)
+        {
+            // then there was no space after the innerClassName.  It was the EOL.
+            // try again considering that use case
+            innerClassName = strLine.substringBetween('interface ', ' ');
+        }
+
+        if (innerClassName == null)
+        {
+            // then there was no space after the innerClassName.  It was the EOL.
+            // try again considering that use case
+            innerClassName = strLine.substringAfter('interface ');
+        }
+
+        system.debug('innerClassName = '+innerClassName);
+        if (innerClassName != null)
+        {
+            output = new ClassLinkModel(ClassLinkModel.ClassLinkTypes.INNERCLASS, outerClassName + '.' + innerClassName);
+        }
+
+        return output;
+    }
+
     private ClassLinkModel findExtendsClassLink(final string strLine)
     {
         ClassLinkModel output = null;
@@ -262,7 +321,7 @@ global class CodeDocumenter
         return output;
     }
 
-    private IFile parseApexClass(ApexClass file)
+    private IFile parseApexClass(ApexClass file, final boolean isNestedClass)
     {
         system.debug('@@@@ file.name == ' + file.name);
         try
@@ -272,17 +331,22 @@ global class CodeDocumenter
             boolean fileParsed = false;
             boolean commentsStarted = false;
             boolean internalCommentsStarted = false;
+            boolean isParsingNestedClass = false;
+            boolean isCurrentlyInNestedClassConstruct = false;
+            string currentNestedClassBeingParsed = null;
             list<string> lstComments = new list<string>();
             //ClassModel cModel = new ClassModel();
             IFile fileModel = null;
             list<MethodModel> methods = new list<MethodModel>();
             list<PropertyModel> properties = new list<PropertyModel>();
             list<ConstructorModel> constructors = new list<ConstructorModel>();
-            list<ClassModel> innerClasses = new list<ClassModel>();
+            list<ClassLinkModel> innerClasses = new list<ClassLinkModel>();
 
             for (string strLine : file.Body.split('\n'))
             {
-                system.debug('strLine == '+strLine);
+                system.debug('_____________________________________________________________________ strLine == '+strLine);
+                //system.debug('isParsingNestedClass == '+isParsingNestedClass);
+                //system.debug('isCurrentlyInNestedClassConstruct == '+isCurrentlyInNestedClassConstruct);
 
                 strLine = strLine.trim();
 
@@ -352,6 +416,47 @@ global class CodeDocumenter
                     continue;
                 }
 
+                if (fileParsed && isParsingNestedClass)
+                {
+                    this.nestedClassLineMap.get(file.id).get(currentNestedClassBeingParsed).add(strLine);
+                }
+
+                // ignore methods, properties, and constructors that are part of nested classes
+                if (fileParsed
+                    && isParsingNestedClass
+                    && ! isCurrentlyInNestedClassConstruct
+                    && strLine.containsIgnoreCase('{')
+                    )
+                {
+                    isCurrentlyInNestedClassConstruct = true;
+                    //system.debug('isCurrentlyInNestedClassConstruct = true');
+                    continue;
+                }
+
+                // determine when the method, property, or constructor are completed.
+                if (fileParsed
+                    && isParsingNestedClass
+                    && isCurrentlyInNestedClassConstruct
+                    && strLine.containsIgnoreCase('}')
+                    )
+                {
+                    isCurrentlyInNestedClassConstruct = false;
+                    //system.debug('isCurrentlyInNestedClassConstruct = false');
+                    continue;
+                }
+
+                // determine the end of the nested classed.
+                if (fileParsed
+                    && isParsingNestedClass
+                    && ! isCurrentlyInNestedClassConstruct
+                    && strLine.containsIgnoreCase('}')
+                    )
+                {
+                    isParsingNestedClass = false;
+                    //system.debug('isParsingNestedClass = false');
+                    continue;
+                }
+
                 // ignore anything after an =.  this avoids confusing properties with methods.
                 ich = strLine.indexOf('=');
 
@@ -375,32 +480,51 @@ global class CodeDocumenter
                     && ! (fileModel instanceOf InterfaceModel)
                     )
                 {
+                    //system.debug('ignore lines not dealing with scope');
                     continue;
                 }
 
                 // look for a class
                 if ( ! fileParsed
-                    && strLine.containsIgnoreCase(' class ')
-                    )
+                    && strLine.containsIgnoreCase(' class '))
                 {
+                    system.debug('Found an outer class ... '+strLine);
                     fileParsed = true;
-                    fileModel = new ClassModel();
+
+                    if (isNestedClass)
+                    {
+                        fileModel = new NestedClassModel();
+                    }
+                    else
+                    {
+                        fileModel = new ClassModel();
+                    }
 
                     string fullNameLine = determineCompleteNameLine(strLine, file.Body);
 
                     fillModel((IApexModel)fileModel, fullNameLine, lstComments);
-                    ((ClassModel)fileModel).setApexFileId(file.id);
+
+                    fileModel.setApexFileId(file.id);
 
                     // Check to see if the class extends another class
-                    if (fullNameLine.containsIgnoreCase(EXTENDS_KEYWORD_STRING.trim()))
+                    if (fullNameLine.containsIgnoreCase(EXTENDS_KEYWORD_STRING.trim())
+                        && fileModel instanceOf IExtensible)
                     {
-                        ((ClassModel)fileModel).setExtends(findExtendsClassLink(fullNameLine));
+                        ((IExtensible)fileModel).setExtends(findExtendsClassLink(fullNameLine));
                     }
 
                     // Check to see if the class implements an interface
-                    if (fullNameLine.containsIgnoreCase(IMPLEMENTS_KEYWORD_STRING.trim()))
+                    if (fullNameLine.containsIgnoreCase(IMPLEMENTS_KEYWORD_STRING.trim())
+                        && fileModel instanceOf IImplementable)
                     {
-                        ((ClassModel)fileModel).setInterfacesImplemented(findImplementedInterfacesClassLinks(fullNameLine));
+                        ((IImplementable)fileModel).setInterfacesImplemented(findImplementedInterfacesClassLinks(fullNameLine));
+                    }
+
+                    // Check to see if the class has an outer class
+                    if (fileModel instanceOf IOuterClassible
+                        && this.outerClassByIdMap.containsKey(file.id))
+                    {
+                        ((IOuterClassible)fileModel).setOuterClass( new ClassLinkModel(ClassLinkModel.ClassLinkTypes.OUTERCLASS, this.outerClassByIdMap.get(file.id).name) );
                     }
 
                     lstComments.clear();
@@ -413,18 +537,36 @@ global class CodeDocumenter
                     && ! strLine.containsIgnoreCase(' class ')
                     )
                 {
+                    system.debug('Found an interface ... '+strLine);
                     fileParsed = true;
-                    fileModel = new InterfaceModel();
+
+                    if (isNestedClass)
+                    {
+                        fileModel = new NestedInterfaceModel();
+                    }
+                    else
+                    {
+                        fileModel = new InterfaceModel();
+                    }
 
                     string fullNameLine = determineCompleteNameLine(strLine, file.Body);
 
                     fillModel((IApexModel)fileModel, fullNameLine, lstComments);
-                    ((InterfaceModel)fileModel).setApexFileId(file.id);
+
+                    fileModel.setApexFileId(file.id);
 
                     // Check to see if the interface extends another interface
-                    if (fullNameLine.containsIgnoreCase(EXTENDS_KEYWORD_STRING.trim()))
+                    if (fullNameLine.containsIgnoreCase(EXTENDS_KEYWORD_STRING.trim())
+                        && fileModel instanceOf IExtensible)
                     {
-                        ((InterfaceModel)fileModel).setExtends(findExtendsClassLink(fullNameLine));
+                        ((IExtensible)fileModel).setExtends(findExtendsClassLink(fullNameLine));
+                    }
+
+                    // Check to see if the class has an outer class
+                    if (fileModel instanceOf IOuterClassible
+                        && this.outerClassByIdMap.containsKey(file.id))
+                    {
+                        ((IOuterClassible)fileModel).setOuterClass( new ClassLinkModel(ClassLinkModel.ClassLinkTypes.OUTERCLASS, this.outerClassByIdMap.get(file.id).name) );
                     }
 
                     lstComments.clear();
@@ -433,35 +575,55 @@ global class CodeDocumenter
 
                 // look for an inner class
                 if (fileParsed
+                    && ! isParsingNestedClass
                     && fileModel instanceOf IInnerClasses
-                    && strLine.containsIgnoreCase(' class '))
+                    && ( strLine.containsIgnoreCase(' class ')
+                        || strLine.containsIgnoreCase(' interface ')
+                        )
+                    )
                 {
                     system.debug('Found the inner class ... '+strLine);
-                    ClassModel innerClassModel = new ClassModel();
-                    fillModel(innerClassModel, strLine, lstComments);
-                    innerClasses.add(innerClassModel);
+
+                    isParsingNestedClass = true;
 
                     string fullNameLine = determineCompleteNameLine(strLine, file.Body);
 
-                    // Check to see if the class extends another class
-                    if (fullNameLine.containsIgnoreCase(EXTENDS_KEYWORD_STRING.trim()))
+                    ClassLinkModel innerClassLink = findInnerClassLink(fullNameLine, file.name);
+
+                    innerClasses.add( innerClassLink );
+
+                    currentNestedClassBeingParsed = innerClassLink.getName();
+
+                    if ( ! this.nestedClassLineMap.containsKey(file.id) )
                     {
-                        innerClassModel.setExtends(findExtendsClassLink(fullNameLine));
+                        this.nestedClassLineMap.put( file.id, new map<string, list<String>>());
                     }
 
-                    // Check to see if the class implements an interface
-                    if (fullNameLine.containsIgnoreCase(IMPLEMENTS_KEYWORD_STRING.trim()))
+                    if ( ! this.nestedClassLineMap.get(file.id).containsKey(currentNestedClassBeingParsed) )
                     {
-                        innerClassModel.setInterfacesImplemented(findImplementedInterfacesClassLinks(fullNameLine));
+                        this.nestedClassLineMap.get(file.id).put(currentNestedClassBeingParsed, new list<String>() );
                     }
+
+                    // add the class comments first
+                    this.nestedClassLineMap.get(file.id).get(currentNestedClassBeingParsed).addAll(lstComments);
+
+                    // add the current strLine
+                    this.nestedClassLineMap.get(file.id).get(currentNestedClassBeingParsed).add(strLine);
 
                     lstComments.clear();
+
+                    if ( ! this.outerClassByIdMap.containsKey(file.id) )
+                    {
+                        this.outerClassByIdMap.put(file.id, file);
+                    }
+
                     continue;
                 }
 
                 // look for a method
                 if (fileModel instanceOf IMethods
                     && strLine.containsIgnoreCase('(')
+                    && ! isParsingNestedClass
                     && ! strLine.replace(' ','').containsIgnoreCase(file.name+'(')
                     )
                 {
@@ -475,9 +637,9 @@ global class CodeDocumenter
                     continue;
                 }
 
-                // TODO: need to handle constructors for the class
                 if (fileModel instanceOf IConstructors
                     && ! strLine.containsIgnoreCase(' class ')
+                    && ! isParsingNestedClass
                     && strLine.replace(' ','').containsIgnoreCase(file.name+'(') )
                 {
                     ConstructorModel constructorModel = new ConstructorModel();
@@ -489,6 +651,7 @@ global class CodeDocumenter
 
                 if (fileModel instanceOf IProperties
                     && string.isNotBlank(strLine.trim())
+                    && ! isParsingNestedClass
                     )
                 {
                     // must be a property of a Class
@@ -648,12 +811,35 @@ global class CodeDocumenter
                                             , uow);
                 }
 
+                // Is there a ClassLink for an outer class?
+                if (fileModel instanceOf IOuterClassible && ((IOuterClassible)fileModel).getOuterClass() != null)
+                {
+                    registerClassLinkWithUOW( ApexDocModelCompositeTransformer.createClassLinkRecord( ((IOuterClassible)fileModel).getOuterClass()  )
+                                            , codeInfoRecord
+                                            , uow);
+                }
+
                 // Are there any ClassLinks for implementables?
                 if (fileModel instanceOf IImplementable
                     && ((IImplementable)fileModel).getInterfacesImplemented() != null
                     && ! ((IImplementable)fileModel).getInterfacesImplemented().isEmpty())
                 {
                     list<ClassLink__c> classLinkRecords = ApexDocModelCompositeTransformer.createClassLinkRecords( ((IImplementable)fileModel).getInterfacesImplemented() );
+
+                    for (ClassLink__c classLinkRecord : classLinkRecords)
+                    {
+                        registerClassLinkWithUOW( classLinkRecord
+                                                , codeInfoRecord
+                                                , uow);
+                    }
+                }
+
+                // Are there any ClassLinks for inner classes?
+                if (fileModel instanceOf IInnerClasses
+                    && ((IInnerClasses)fileModel).getInnerClasses() != null
+                    && ! ((IInnerClasses)fileModel).getInnerClasses().isEmpty())
+                {
+                    list<ClassLink__c> classLinkRecords = ApexDocModelCompositeTransformer.createClassLinkRecords( ((IInnerClasses)fileModel).getInnerClasses() );
 
                     for (ClassLink__c classLinkRecord : classLinkRecords)
                     {
@@ -830,7 +1016,7 @@ global class CodeDocumenter
 
     private boolean strContainsScope(final string str)
     {
-        system.debug('str == '+str);
+//        system.debug('str == '+str);
 
         for (string aScope : rgstrScope )
         {

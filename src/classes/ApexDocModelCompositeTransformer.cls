@@ -143,7 +143,15 @@ public class ApexDocModelCompositeTransformer
     {
         CodeInfo__c output = new CodeInfo__c();
 
-        output.filename__c = input.getName();
+        if (input instanceOf IOuterClassible)
+        {
+            // account for the outer class name
+            output.filename__c = ((IOuterClassible)input).getOuterClass().getName() + '.' + input.getName();
+        }
+        else
+        {
+            output.filename__c = input.getName();
+        }
 
         if (input instanceOf FileModel)
         {

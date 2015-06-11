@@ -107,6 +107,14 @@ public with sharing class FileViewController
         }
     }
 
+    public IOuterClassible outerClassible
+    {
+        get
+        {
+            return model instanceOf IOuterClassible ? (IOuterClassible)model : null;
+        }
+    }
+
     private void initialize(final string fileName)
     {
         system.debug('fileName == '+fileName);

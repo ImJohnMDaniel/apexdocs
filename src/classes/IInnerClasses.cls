@@ -9,12 +9,12 @@
 public interface IInnerClasses
 {
     /**
-     * @param list of ClassModels.  One for each inner class.
+     * @param list of ClassLinkModels.  One for each inner class.
      */
-    void setInnerClasses( final list<ClassModel> innerClasses );
+    void setInnerClasses( final list<ClassLinkModel> innerClasses );
 
     /**
-     * @return a list of ClassModels
+     * @return a list of ClassLinkModels
      */
-    list<ClassModel> getInnerClasses();
+    list<ClassLinkModel> getInnerClasses();
 }

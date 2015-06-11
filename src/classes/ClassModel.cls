@@ -26,14 +26,62 @@ public class ClassModel extends ApexConstructBaseModel
     private list<MethodModel> methods = new list<MethodModel>();
     private list<PropertyModel> properties = new list<PropertyModel>();
     private list<ConstructorModel> constructors = new list<ConstructorModel>();
-    private list<ClassModel> innerClasses = new list<ClassModel>();
+    private list<ClassLinkModel> innerClasses = new list<ClassLinkModel>();
     private list<string> authors = new list<string>();
     private list<ClassLinkModel> interfacesImplemented = new list<ClassLinkModel>();
 
 
-    public override type getClassType()
+    /**
+     *  @return the Createddate of the associated ApexClass CreatedDate field
+     */
+    public DateTime getApexFileCreatedDate()
     {
-        return ClassModel.class;
+        return this.apexFileCreatedDate;
+    }
+
+    /**
+     *  @return the CreatedById of the associated ApexClass record
+     */
+    public id getApexFileCreatedById()
+    {
+        return this.apexFileCreatedById;
+    }
+
+    /**
+     *  @return the CreatedBy.name of the associated ApexClass record
+     */
+    public string getApexFileCreatedByName()
+    {
+        return this.apexFileCreatedByName;
+    }
+
+    public id getApexFileId()
+    {
+        return this.apexFileId;
+    }
+
+    /**
+     *  @return the LastModifieddate of the associated ApexClass record
+     */
+    public DateTime getApexFileLastModifiedDate()
+    {
+        return this.apexFileLastModifiedDate;
+    }
+
+    /**
+     *  @return the LastModifiedById of the associated ApexClass record
+     */
+    public id getApexFileLastModifiedById()
+    {
+        return this.apexFileLastModifiedById;
+    }
+
+    /**
+     *  @return the LastModifiedBy.name of the associated ApexClass record
+     */
+    public string getApexFileLastModifiedByName()
+    {
+        return this.apexFileLastModifiedByName;
     }
 
     public list<string> getAuthors()
@@ -41,9 +89,66 @@ public class ClassModel extends ApexConstructBaseModel
         return this.authors;
     }
 
-    public id getApexFileId()
+    public override type getClassType()
     {
-        return this.apexFileId;
+        return ClassModel.class;
+    }
+
+    public list<ConstructorModel> getConstructors()
+    {
+        return this.constructors;
+    }
+
+    /**
+     *  @return the {@link ClassLinkModel} that represents the class that this one is extending.
+     */
+    public ClassLinkModel getExtends()
+    {
+        return this.extendsClass;
+    }
+
+    public id getId()
+    {
+        return this.codeInfoId;
+    }
+
+    /**
+     * @return a list of ClassLinkModels
+     */
+    public list<ClassLinkModel> getInnerClasses()
+    {
+    	return this.innerClasses;
+    }
+
+
+    public list<ClassLinkModel> getInterfacesImplemented()
+    {
+        return this.interfacesImplemented;
+    }
+
+    public boolean getIsException()
+    {
+        return getName().endsWithIgnoreCase('Exception');
+    }
+
+    public boolean getIsInterface()
+    {
+        return false;
+    }
+
+    /**
+     *  Method is used to determine if the model information currently stored is up to date or
+     *  has there been an update to the Apex Class since the last documentation event.
+     *  @return boolean - true if the Apex Class and documented model information are in sync.
+     */
+    public boolean getIsModelCurrent()
+    {
+        return this.isModelCurrent;
+    }
+
+    public list<MethodModel> getMethods()
+    {
+        return this.methods;
     }
 
     /**
@@ -59,7 +164,7 @@ public class ClassModel extends ApexConstructBaseModel
 
         if(nameLine != null && nameLine.trim().length() > 0 )
         {
-        	string classKeywordToFind = ' class ';
+            string classKeywordToFind = ' class ';
             //system.debug('## File Name = ' + nameLine.trim().lastIndexOf(' '));
             integer fFound = nameLine.indexOf(classKeywordToFind);
             integer lFound = nameLine.indexOf(' ', fFound + classKeywordToFind.length());
@@ -83,57 +188,19 @@ public class ClassModel extends ApexConstructBaseModel
         }
     }
 
-    public list<ConstructorModel> getConstructors()
-    {
-        return this.constructors;
-    }
-
-    /**
-     *  @return the {@link ClassLinkModel} that represents the class that this one is extending.
-     */
-    public ClassLinkModel getExtends()
-    {
-        return this.extendsClass;
-    }
-
-    public id getId()
-    {
-        return this.codeInfoId;
-    }
-
-    /**
-     * @return a list of ClassModels
-     */
-    public list<ClassModel> getInnerClasses()
-    {
-    	return this.innerClasses;
-    }
-
-
-    public list<ClassLinkModel> getInterfacesImplemented()
-    {
-        return this.interfacesImplemented;
-    }
-
-    public boolean getIsInterface()
-    {
-        return false;
-    }
-
-    public boolean getIsException()
-    {
-        return getName().endsWithIgnoreCase('Exception');
-    }
-
-    public list<MethodModel> getMethods()
-    {
-        return this.methods;
-    }
-
     public list<PropertyModel> getProperties()
     {
         return this.properties;
     }
+
+    /**
+     *  convenience method to return same information as the getIsModelCurrent() method.
+     */
+    public boolean isModelCurrent()
+    {
+        return this.isModelCurrent;
+    }
+
 
     // TODO: Change these tags a ENUM or some sort of central constant.
     public void set(final string tag, final string value)
@@ -165,9 +232,63 @@ public class ClassModel extends ApexConstructBaseModel
         }
     }
 
+    /**
+     *  This is the setter for the associated ApexClass CreatedDate field.
+     * @param apexFileCreatedDate
+     */
+    public void setApexFileCreatedDate(final DateTime apexFileCreatedDate)
+    {
+        this.apexFileCreatedDate = apexFileCreatedDate;
+    }
+
+    /**
+     *  This is the setter for the associated ApexClass CreatedById field.
+     * @param apexFileCreatedById
+     */
+    public void setApexFileCreatedById(final id apexFileCreatedById)
+    {
+        this.apexFileCreatedById = apexFileCreatedById;
+    }
+
+    /**
+     *  This is the setter for the associated ApexClass CreatedBy.Name field.
+     * @param apexFileCreatedByName
+     */
+    public void setApexFileCreatedByName(final string apexFileCreatedByName)
+    {
+        this.apexFileCreatedByName = apexFileCreatedByName;
+    }
+
     public void setApexFileId(final id id)
     {
         this.apexFileId = id;
+    }
+
+    /**
+     * This is the setter for the associated ApexClass LastModifiedDate field.
+     * @return the LastModifiedDate of the associated ApexClass record
+     */
+    public void setApexFileLastModifiedDate(final DateTime apexFileLastModifiedDate)
+    {
+        this.apexFileLastModifiedDate = apexFileLastModifiedDate;
+    }
+
+    /**
+     *  This is the setter for the associated ApexClass LastModifiedById field.
+     * @param apexFileLastModifiedById
+     */
+    public void setApexFileLastModifiedById(final id apexFileLastModifiedById)
+    {
+        this.apexFileLastModifiedById = apexFileLastModifiedById;
+    }
+
+    /**
+     *  This is the setter for the associated ApexClass LastModifiedBy.Name field.
+     * @param apexFileLastModifiedByName
+     */
+    public void setApexFileLastModifiedByName(final string apexFileLastModifiedByName)
+    {
+        this.apexFileLastModifiedByName = apexFileLastModifiedByName;
     }
 
     public void setAuthor(final string author)
@@ -196,9 +317,9 @@ public class ClassModel extends ApexConstructBaseModel
     }
 
     /**
-     * @param list of ClassModels.  One for each inner class.
+     * @param list of ClassLinkModels.  One for each inner class.
      */
-    public void setInnerClasses( final list<ClassModel> innerClasses )
+    public void setInnerClasses( final list<ClassLinkModel> innerClasses )
     {
         this.innerClasses = innerClasses;
     }
@@ -206,6 +327,14 @@ public class ClassModel extends ApexConstructBaseModel
     public void setInterfacesImplemented(final list<ClassLinkModel> interfacesImplemented)
     {
         this.interfacesImplemented = interfacesImplemented;
+    }
+
+    /**
+     *  Setter method for the isModelCurrent value
+     */
+    public void setIsModelCurrent(final boolean isModelCurrent)
+    {
+        this.isModelCurrent = isModelCurrent;
     }
 
     public void setMethods(final list<MethodModel> methods)
@@ -218,131 +347,4 @@ public class ClassModel extends ApexConstructBaseModel
         this.properties = properties;
     }
 
-    /**
-     *  @return the Createddate of the associated ApexClass CreatedDate field
-     */
-    public DateTime getApexFileCreatedDate()
-    {
-        return this.apexFileCreatedDate;
-    }
-
-	/**
-     *  This is the setter for the associated ApexClass CreatedDate field.
-     * @param apexFileCreatedDate
-     */
-    public void setApexFileCreatedDate(final DateTime apexFileCreatedDate)
-    {
-        this.apexFileCreatedDate = apexFileCreatedDate;
-    }
-
-    /**
-     *  @return the CreatedById of the associated ApexClass record
-     */
-    public id getApexFileCreatedById()
-    {
-        return this.apexFileCreatedById;
-    }
-
-	/**
-     *  This is the setter for the associated ApexClass CreatedById field.
-     * @param apexFileCreatedById
-     */
-    public void setApexFileCreatedById(final id apexFileCreatedById)
-    {
-        this.apexFileCreatedById = apexFileCreatedById;
-    }
-
-    /**
-     *  @return the CreatedBy.name of the associated ApexClass record
-     */
-    public string getApexFileCreatedByName()
-    {
-        return this.apexFileCreatedByName;
-    }
-
-	/**
-     *  This is the setter for the associated ApexClass CreatedBy.Name field.
-     * @param apexFileCreatedByName
-     */
-    public void setApexFileCreatedByName(final string apexFileCreatedByName)
-    {
-        this.apexFileCreatedByName = apexFileCreatedByName;
-    }
-
-	/**
-     *  @return the LastModifieddate of the associated ApexClass record
-     */
-    public DateTime getApexFileLastModifiedDate()
-    {
-        return this.apexFileLastModifiedDate;
-    }
-
-	/**
-     * This is the setter for the associated ApexClass LastModifiedDate field.
-	 * @return the LastModifiedDate of the associated ApexClass record
-     */
-    public void setApexFileLastModifiedDate(final DateTime apexFileLastModifiedDate)
-    {
-        this.apexFileLastModifiedDate = apexFileLastModifiedDate;
-    }
-
-    /**
-     *  @return the LastModifiedById of the associated ApexClass record
-     */
-    public id getApexFileLastModifiedById()
-    {
-        return this.apexFileLastModifiedById;
-    }
-
-	/**
-     *  This is the setter for the associated ApexClass LastModifiedById field.
-     * @param apexFileLastModifiedById
-     */
-    public void setApexFileLastModifiedById(final id apexFileLastModifiedById)
-    {
-        this.apexFileLastModifiedById = apexFileLastModifiedById;
-    }
-
-    /**
-     *  @return the LastModifiedBy.name of the associated ApexClass record
-     */
-    public string getApexFileLastModifiedByName()
-    {
-        return this.apexFileLastModifiedByName;
-    }
-
-	/**
-     *  This is the setter for the associated ApexClass LastModifiedBy.Name field.
-     * @param apexFileLastModifiedByName
-     */
-    public void setApexFileLastModifiedByName(final string apexFileLastModifiedByName)
-    {
-        this.apexFileLastModifiedByName = apexFileLastModifiedByName;
-    }
-
-    /**
-     *  Method is used to determine if the model information currently stored is up to date or
-     *  has there been an update to the Apex Class since the last documentation event.
-     *  @return boolean - true if the Apex Class and documented model information are in sync.
-     */
-    public boolean getIsModelCurrent()
-    {
-        return this.isModelCurrent;
-    }
-
-    /**
-     *  convenience method to return same information as the getIsModelCurrent() method.
-     */
-    public boolean isModelCurrent()
-    {
-        return this.isModelCurrent;
-    }
-
-    /**
-     *  Setter method for the isModelCurrent value
-     */
-    public void setIsModelCurrent(final boolean isModelCurrent)
-    {
-        this.isModelCurrent = isModelCurrent;
-    }
 }

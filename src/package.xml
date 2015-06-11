@@ -47,12 +47,15 @@
         <members>IImplementable</members>
         <members>IInnerClasses</members>
         <members>IMethods</members>
+        <members>IOuterClassible</members>
         <members>IParams</members>
         <members>IProperties</members>
         <members>ISees</members>
         <members>IThrows</members>
         <members>InterfaceModel</members>
         <members>MethodModel</members>
+        <members>NestedClassModel</members>
+        <members>NestedInterfaceModel</members>
         <members>PropertyModel</members>
         <members>fflib_ApexMocks</members>
         <members>fflib_Application</members>

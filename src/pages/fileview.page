@@ -208,6 +208,11 @@
                         <apex:outputPanel layout="none" rendered="{! implementable != null && implementable.interfacesImplemented.size > 0 }">
                             <br/>implements&nbsp;<apex:repeat value="{! implementable.interfacesImplemented }" var="classLink"><apex:outputLink value="{! classLink.url }" rendered="{! classLink.isLinkResolved }">{! classLink.name }</apex:outputLink><apex:outputText value="{! classLink.name }" rendered="{! not(classLink.isLinkResolved) }" />,&nbsp;</apex:repeat>
                         </apex:outputPanel>
+                        <apex:outputPanel layout="none" rendered="{! outerClassible != null && outerClassible.outerClass != null }">
+                            <br/>outer class&nbsp;<apex:outputLink value="{! outerClassible.outerClass.url }" rendered="{! outerClassible.outerClass.isLinkResolved }">{! outerClassible.outerClass.name }</apex:outputLink>
+                            <apex:outputText value="{! outerClassible.outerClass.name }" rendered="{! not(outerClassible.outerClass.isLinkResolved) }" />
+                        </apex:outputPanel>
+
                     </pre>
                     <div class="block">
                         <apex:outputText value="{! model.description }" escape="false" />
@@ -242,9 +247,6 @@
                     <ul class="unstyled">
                         <li>
                             <a name="nested_class_summary"><!--   --></a>
-<!--
-                            <h3>TODO:  section - see <a href="http://docs.oracle.com/javase/7/docs/api/java/util/ResourceBundle.html">ResourceBundle.html</a></h3>
- -->
                             <h3>Nested Class Summary</h3>
                             <table class="table table-striped">
                                 <caption><span>Nested Classes</span><span class="tabEnd">&nbsp;</span></caption>
@@ -253,12 +255,14 @@
                                         <th class="colFirst" scope="col">Modifier and Type</th>
                                         <th class="colLast" scope="col">Class and Description</th>
                                     </tr>
-                                    <apex:repeat value="{! innerClassesable.innerClasses }" var="innerClass">
-                                    <apex:variable var="innerClassSignature" value="{! right(innerClass.NameLine, (len(innerClass.NameLine) - find(innerClass.name, innerClass.NameLine) + 1) ) }" />
+                                    <apex:repeat value="{! innerClassesable.innerClasses }" var="innerClassLink">
                                     <tr>
-                                        <td class="colFirst">{! left(innerClass.NameLine, (find(innerClass.name, innerClass.NameLine) - 2) ) }</td>
+                                        <td class="colFirst">class</td>
                                         <td class="colLast">
-                                            <strong><a href="#{! innerClassSignature }">{! innerClass.name }</a></strong>
+                                            <strong>
+                                            <apex:outputLink value="{! innerClassLink.url }" rendered="{! innerClassLink.isLinkResolved }">{! innerClassLink.name }</apex:outputLink>
+                                            <apex:outputText value="{! innerClassLink.name }" rendered="{! not(innerClassLink.isLinkResolved) }" />
+                                            </strong>
                                         </td>
                                     </tr>
                                     </apex:repeat>
@@ -342,27 +346,6 @@
                                     </apex:repeat>
                                 </tbody>
                             </table>
-                        </li>
-                    </ul>
-                    </apex:outputPanel>
-                    <apex:outputPanel layout="none" rendered="{! innerClassesable != null && innerClassesable.innerClasses.size > 0 }">
-                    <ul class="unstyled">
-                        <li>
-                            <a name="innerClass_detail"><!--   --></a>
-                            <h3>Nested Class Detail</h3>
-                            <apex:repeat value="{! innerClassesable.innerClasses }" var="innerClass">
-                            <apex:variable var="innerClassSignature" value="{! right(innerClass.NameLine, (len(innerClass.NameLine) - find(innerClass.name, innerClass.NameLine) + 1) ) }" />
-                            <a name="{! innerClassSignature }"><!--  --></a>
-                            <ul>
-                                <li>
-                                    <h4>{! innerClass.name }</h4>
-                                    <pre>{! innerClass.nameLine }</pre>
-                                    <div>
-                                        <apex:outputText value="{! innerClass.description }" escape="false" />
-                                    </div>
-                                </li>
-                            </ul>
-                            </apex:repeat>
                         </li>
                     </ul>
                     </apex:outputPanel>
