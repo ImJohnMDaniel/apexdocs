@@ -45,6 +45,11 @@ public with sharing class ApexDocsServiceImpl
             ((ISees)model).getSees().clear();
         }
 
+        if (model instanceOf IInnerClasses)
+        {
+            ((IInnerClasses)model).getInnerClasses().clear();
+        }
+
         if (model instanceOf IDescriptionLinks)
         {
             ((IDescriptionLinks)model).getDescriptionLinks().clear();
@@ -86,7 +91,22 @@ public with sharing class ApexDocsServiceImpl
             {
                 ((IThrows)model).getThrows().add( ApexDocModelCompositeTransformer.createClassLinkModel( classLinkRecord ) );
             }
+
+            if (ClassLinkModel.ClassLinkTypes.OUTERCLASS.name().equalsIgnoreCase( classLinkRecord.Type__c )
+                && model instanceOf IOuterClassible
+                )
+            {
+                ((IOuterClassible)model).setOuterClass( ApexDocModelCompositeTransformer.createClassLinkModel( classLinkRecord ) );
             }
+
+            if (ClassLinkModel.ClassLinkTypes.INNERCLASS.name().equalsIgnoreCase( classLinkRecord.Type__c )
+                && model instanceOf IInnerClasses
+                )
+            {
+                ((IInnerClasses)model).getInnerClasses().add( ApexDocModelCompositeTransformer.createClassLinkModel( classLinkRecord ) );
+            }
+
+        }
 
         if (model instanceOf IMethods
             && ((IMethods)model).getMethods() != null
