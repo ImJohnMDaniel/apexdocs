@@ -94,7 +94,6 @@
                             <apex:outputPanel layout="none" rendered="{! methodsable == null || methodsable.methods.size == 0 }">
                             Method
                             </apex:outputPanel>
-                            &nbsp;|&nbsp;
                         </li>
                     </ul>
 
@@ -127,15 +126,16 @@
                             <apex:outputPanel layout="none" rendered="{! methodsable == null || methodsable.methods.size == 0 }">
                             Method
                             </apex:outputPanel>
-                            &nbsp;|&nbsp;
                         </li>
                     </ul>
                 </div>
 
                 <div class="codeInfoDisplay">
-                    <h3><apex:outputText value="Interface" rendered="{! fileable != null && fileable.isInterface }" />
+                    <h3>
+                        <apex:outputText value="Interface" rendered="{! fileable != null && fileable.isInterface }" />
                         <apex:outputText value="Class" rendered="{! fileable != null && not(fileable.isInterface) }" />
-                         {! apexModelable.name }</h3>
+                         {! apexModelable.name }
+                    </h3>
 
                     <apex:outputPanel layout="none" rendered="{! apexFileInfo != null }">
                     <dl>
