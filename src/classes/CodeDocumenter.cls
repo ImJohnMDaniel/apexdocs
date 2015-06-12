@@ -53,7 +53,7 @@ global class CodeDocumenter
         {
             // Then the "nameLine" is completely contained on the current strLine
             nameLine = strLine;
-            system.debug('nameLine is the same as strLine');
+            //system.debug('nameLine is the same as strLine');
         }
         else
         {
@@ -61,10 +61,10 @@ global class CodeDocumenter
             // In this case, the true "nameLine" is the strLine plus all subsequent
             // lines of the file.Body up to the first open bracket "{"
             nameLine = (strLine + ' ' + (fullFileBody.substringBetween(strLine,'{'))).normalizeSpace();
-            system.debug('nameLine is on multiple lines');
+            //system.debug('nameLine is on multiple lines');
         }
 
-        system.debug('The NAMELINE is \n\n'+nameLine+'\n\n');
+        //system.debug(logginglevel.error, 'The NAMELINE is \n\n'+nameLine+'\n\n');
 
         return nameLine;
     }
@@ -100,7 +100,7 @@ global class CodeDocumenter
                         ApexClass nestedClazz = new ApexClass();
 
                         nestedClazz.id = clazz.id;
-                        nestedClazz.Name = clazz.name + '.' + nestedClassName;
+                        nestedClazz.Name = nestedClassName;
                         nestedClazz.Body = String.join(this.nestedClassLineMap.get(clazz.id).get(nestedClassName), '\n');
 
                         models.add( parseApexClass(nestedClazz, true ) );
@@ -257,12 +257,10 @@ global class CodeDocumenter
         return output;
     }
 
-    private ClassLinkModel findInnerClassLink(final string strLine, final string outerClassName)
+    private string findInnerClassFullyQualifiedName(final string strLine, final string outerClassName)
     {
-        ClassLinkModel output = null;
-
         string innerClassName = strLine.substringBetween('class ', ' ');
-        system.debug('innerClassName = '+innerClassName);
+        //system.debug(logginglevel.error, 'innerClassName = '+innerClassName);
 
         if (innerClassName == null)
         {
@@ -285,13 +283,9 @@ global class CodeDocumenter
             innerClassName = strLine.substringAfter('interface ');
         }
 
-        system.debug('innerClassName = '+innerClassName);
-        if (innerClassName != null)
-        {
-            output = new ClassLinkModel(ClassLinkModel.ClassLinkTypes.INNERCLASS, outerClassName + '.' + innerClassName);
-        }
+        //system.debug(logginglevel.error, 'innerClassName = '+innerClassName);
 
-        return output;
+        return outerClassName + '.' + innerClassName;
     }
 
     private ClassLinkModel findExtendsClassLink(final string strLine)
@@ -488,7 +482,7 @@ global class CodeDocumenter
                 if ( ! fileParsed
                     && strLine.containsIgnoreCase(' class '))
                 {
-                    system.debug('Found an outer class ... '+strLine);
+                    system.debug('Found an class ... '+strLine);
                     fileParsed = true;
 
                     if (isNestedClass)
@@ -588,34 +582,48 @@ global class CodeDocumenter
 
                     string fullNameLine = determineCompleteNameLine(strLine, file.Body);
 
-                    ClassLinkModel innerClassLink = findInnerClassLink(fullNameLine, file.name);
+                    //add the class name outerClass name back in the strLine
+                    string fullyQualifiedInnerClassName = findInnerClassFullyQualifiedName(fullNameLine, file.name);
 
-                    innerClasses.add( innerClassLink );
+                    system.debug(logginglevel.error, 'fullyQualifiedInnerClassName = '+fullyQualifiedInnerClassName);
 
-                    currentNestedClassBeingParsed = innerClassLink.getName();
+			        if (fullyQualifiedInnerClassName != null)
+			        {
+                        ClassLinkModel innerClassLink = new ClassLinkModel(ClassLinkModel.ClassLinkTypes.INNERCLASS, fullyQualifiedInnerClassName);
 
-                    if ( ! this.nestedClassLineMap.containsKey(file.id) )
-                    {
-                        this.nestedClassLineMap.put( file.id, new map<string, list<String>>());
-                    }
+                        innerClasses.add( innerClassLink );
 
-                    if ( ! this.nestedClassLineMap.get(file.id).containsKey(currentNestedClassBeingParsed) )
-                    {
-                        this.nestedClassLineMap.get(file.id).put(currentNestedClassBeingParsed, new list<String>() );
-                    }
+                        currentNestedClassBeingParsed = fullyQualifiedInnerClassName;
 
-                    // add the class comments first
-                    this.nestedClassLineMap.get(file.id).get(currentNestedClassBeingParsed).addAll(lstComments);
+                        if ( ! this.nestedClassLineMap.containsKey(file.id) )
+                        {
+                            this.nestedClassLineMap.put( file.id, new map<string, list<String>>());
+                        }
 
-                    // add the current strLine
-                    this.nestedClassLineMap.get(file.id).get(currentNestedClassBeingParsed).add(strLine);
+                        if ( ! this.nestedClassLineMap.get(file.id).containsKey(currentNestedClassBeingParsed) )
+                        {
+                            this.nestedClassLineMap.get(file.id).put(currentNestedClassBeingParsed, new list<String>() );
+                        }
 
-                    lstComments.clear();
+                        // add the class comments first
+                        this.nestedClassLineMap.get(file.id).get(currentNestedClassBeingParsed).addAll(lstComments);
 
-                    if ( ! this.outerClassByIdMap.containsKey(file.id) )
-                    {
-                        this.outerClassByIdMap.put(file.id, file);
-                    }
+                        string classNameWithoutOuterClassPrefix = fullyQualifiedInnerClassName.substringAfter('.');
+
+                        string augmentedStrLine = strLine.replace(' '+classNameWithoutOuterClassPrefix, ' '+fullyQualifiedInnerClassName);
+
+                        system.debug(logginglevel.error, 'augmentedStrLine = '+augmentedStrLine );
+
+                        // add the current strLine
+                        this.nestedClassLineMap.get(file.id).get(currentNestedClassBeingParsed).add( augmentedStrLine );
+
+                        lstComments.clear();
+
+                        if ( ! this.outerClassByIdMap.containsKey(file.id) )
+                        {
+                            this.outerClassByIdMap.put(file.id, file);
+                        }
+			        }
 
                     continue;
                 }

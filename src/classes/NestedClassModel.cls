@@ -45,7 +45,7 @@ public class NestedClassModel
         string nameLine = getNameLine();
 
         if (nameLine != null) nameLine = nameLine.trim();
-        //system.debug('@@ File Name = ' + nameLine);
+        //system.debug(logginglevel.error, '@@ File Name = ' + nameLine);
 
         if(nameLine != null && nameLine.trim().length() > 0 )
         {
