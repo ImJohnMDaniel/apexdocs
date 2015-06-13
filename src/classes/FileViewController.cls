@@ -22,7 +22,7 @@ public with sharing class FileViewController
 
     public list<IFile> getAvailableClasses()
     {
-        return ApexDocsService.findAllOuterClasses();
+        return ApexDocsService.findAllFiles();
     }
 
     public ApexConstructBaseModel model { get; private set; }

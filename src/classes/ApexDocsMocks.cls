@@ -70,11 +70,6 @@ public class ApexDocsMocks
             return (list<CodeInfo__c>) mocks.mockNonVoidMethod(this, 'selectAll', new List<Object>{});
         }
 
-        public list<CodeInfo__c> selectByModelType(final set<string> modelTypes)
-        {
-            return (list<CodeInfo__c>) mocks.mockNonVoidMethod(this, 'selectByModelType', new List<Object>{ modelTypes });
-        }
-
         public list<Schema.FieldSet> getSObjectFieldSetList()
 		{
 			return (list<Schema.FieldSet>) mocks.mockNonVoidMethod(this, 'getSObjectFieldSetList', new List<Object>{});

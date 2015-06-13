@@ -86,23 +86,4 @@ public class CodeInfosSelector
 
         return (list<CodeInfo__c>) database.query(query);
     }
-
-    public list<CodeInfo__c> selectByModelType(final set<string> modelTypes)
-    {
-        assertIsAccessible();
-
-        string query = string.format(
-                'select {0} ' +
-                  'from {1} ' +
-                 'where {3} in :modelTypes ' +
-                 'order by {2}',
-            new list<string>{
-                getFieldListString(),
-                getSObjectName(),
-                CodeInfo__c.FileName__c.getDescribe().getName(),
-                CodeInfo__c.ModelType__c.getDescribe().getName()
-        });
-
-        return (list<CodeInfo__c>) database.query(query);
-    }
 }
