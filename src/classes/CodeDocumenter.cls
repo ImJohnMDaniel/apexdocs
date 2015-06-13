@@ -1,5 +1,6 @@
-global class CodeDocumenter
-	implements Queueable //Database.Batchable<SObject>
+public class CodeDocumenter
+	implements Queueable
+	//Database.Batchable<SObject>
 {
     public static list<string> rgstrScope { get; set; }
 
