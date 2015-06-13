@@ -188,6 +188,15 @@
                        </dd>
                     </dl>
                     </apex:outputPanel>
+                    <apex:outputPanel layout="none" rendered="{! outerClassible != null && outerClassible.outerClass != null }">
+                    <dl>
+                       <dt>Enclosing class:</dt>
+                       <dd>
+                            <apex:outputLink value="{! outerClassible.outerClass.url }" rendered="{! outerClassible.outerClass.isLinkResolved }">{! outerClassible.outerClass.name }</apex:outputLink>
+                            <apex:outputText value="{! outerClassible.outerClass.name }" rendered="{! not(outerClassible.outerClass.isLinkResolved) }" />
+                       </dd>
+                    </dl>
+                    </apex:outputPanel>
                     <apex:outputPanel layout="none" rendered="{! knownThrowersOfException.size > 0 }">
                     <dl>
                        <dt>Known Classes That Throw This Exception:</dt>
@@ -208,11 +217,6 @@
                         <apex:outputPanel layout="none" rendered="{! implementable != null && implementable.interfacesImplemented.size > 0 }">
                             <br/>implements&nbsp;<apex:repeat value="{! implementable.interfacesImplemented }" var="classLink"><apex:outputLink value="{! classLink.url }" rendered="{! classLink.isLinkResolved }">{! classLink.name }</apex:outputLink><apex:outputText value="{! classLink.name }" rendered="{! not(classLink.isLinkResolved) }" />,&nbsp;</apex:repeat>
                         </apex:outputPanel>
-                        <apex:outputPanel layout="none" rendered="{! outerClassible != null && outerClassible.outerClass != null }">
-                            <br/>outer class&nbsp;<apex:outputLink value="{! outerClassible.outerClass.url }" rendered="{! outerClassible.outerClass.isLinkResolved }">{! outerClassible.outerClass.name }</apex:outputLink>
-                            <apex:outputText value="{! outerClassible.outerClass.name }" rendered="{! not(outerClassible.outerClass.isLinkResolved) }" />
-                        </apex:outputPanel>
-
                     </pre>
                     <div class="block">
                         <apex:outputText value="{! model.description }" escape="false" />
