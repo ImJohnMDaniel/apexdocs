@@ -338,6 +338,8 @@ public class CodeDocumenter
             list<ConstructorModel> constructors = new list<ConstructorModel>();
             list<ClassLinkModel> innerClasses = new list<ClassLinkModel>();
 
+            string fileNameWithoutEnclosingClassName = file.name.indexOf('.') == -1 ? file.name : file.name.substringAfter('.') ;
+
             for (string strLine : file.Body.split('\n'))
             {
                 system.debug('_____________________________________________________________________ strLine == '+strLine);
@@ -640,12 +642,17 @@ public class CodeDocumenter
                 }
 
                 system.debug('did not find a class structure.  now looking for a method or property');
+                system.debug('strLine == '+strLine);
+                system.debug('strLine.containsIgnoreCase(\'(\') == '+strLine.containsIgnoreCase('('));
+                system.debug('isParsingNestedClass == '+isParsingNestedClass);
+                system.debug('fileNameWithoutEnclosingClassName == '+fileNameWithoutEnclosingClassName);
+                system.debug('strLine.replace(\' \',\'\').containsIgnoreCase(fileNameWithoutEnclosingClassName+\'(\') == ' + strLine.replace(' ','').containsIgnoreCase(fileNameWithoutEnclosingClassName+'('));
 
                 // look for a method
                 if (fileModel instanceOf IMethods
                     && strLine.containsIgnoreCase('(')
                     && ! isParsingNestedClass
-                    && ! strLine.replace(' ','').containsIgnoreCase(file.name+'(')
+                    && ! strLine.replace(' ','').containsIgnoreCase(fileNameWithoutEnclosingClassName+'(')
                     )
                 {
                     //system.debug('fileModel is instanceOf IMethods.');
@@ -661,7 +668,7 @@ public class CodeDocumenter
                 if (fileModel instanceOf IConstructors
                     && ! strLine.containsIgnoreCase(' class ')
                     && ! isParsingNestedClass
-                    && strLine.replace(' ','').containsIgnoreCase(file.name+'(') )
+                    && strLine.replace(' ','').containsIgnoreCase(fileNameWithoutEnclosingClassName+'(') )
                 {
                     ConstructorModel constructorModel = new ConstructorModel();
                     fillModel(constructorModel, strLine, lstComments);
