@@ -186,10 +186,7 @@ public with sharing class FileViewController
             {
                 knownImplementors.addAll( ApexDocsService.findKnownImplementorsForFile((IFile)model) );
             }
-            else
-            {
-                knownSubClasses.addAll( ApexDocsService.findKnownSubClassesForFile((IFile)model) );
-            }
+            knownSubClasses.addAll( ApexDocsService.findKnownSubClassesForFile((IFile)model) );
         }
     }
 
@@ -223,15 +220,12 @@ public with sharing class FileViewController
             {
                 knownImplementors.addAll( ApexDocsService.findKnownImplementorsForFile((IFile)model) );
             }
-            else
+            if (model instanceOf ClassModel
+                && ((ClassModel)model).getIsException() )
             {
-                if (model instanceOf ClassModel
-                    && ((ClassModel)model).getIsException() )
-                {
-                    knownThrowersOfException.addAll( ApexDocsService.findKnownThrowersOfExceptionForFile((IFile)model) );
-                }
-                knownSubClasses.addAll( ApexDocsService.findKnownSubClassesForFile((IFile)model) );
+                knownThrowersOfException.addAll( ApexDocsService.findKnownThrowersOfExceptionForFile((IFile)model) );
             }
+            knownSubClasses.addAll( ApexDocsService.findKnownSubClassesForFile((IFile)model) );
         }
     }
 
