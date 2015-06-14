@@ -65,7 +65,7 @@ public class CodeDocumenter
             //system.debug('nameLine is on multiple lines');
         }
 
-        //system.debug(logginglevel.error, 'The NAMELINE is \n\n'+nameLine+'\n\n');
+        //system.debug('The NAMELINE is \n\n'+nameLine+'\n\n');
 
         return nameLine;
     }
@@ -96,6 +96,7 @@ public class CodeDocumenter
                 // process any nested classes that are present.
                 if (this.nestedClassLineMap.containsKey(clazz.id))
                 {
+                    //system.debug('this.nestedClassLineMap.get(clazz.id).keyset() === '+this.nestedClassLineMap.get(clazz.id).keyset());
                     for (string nestedClassName : this.nestedClassLineMap.get(clazz.id).keyset())
                     {
                         ApexClass nestedClazz = new ApexClass();
@@ -261,7 +262,7 @@ public class CodeDocumenter
     private string findInnerClassFullyQualifiedName(final string strLine, final string outerClassName)
     {
         string innerClassName = strLine.substringBetween('class ', ' ');
-        //system.debug(logginglevel.error, 'innerClassName = '+innerClassName);
+        //system.debug('innerClassName = '+innerClassName);
 
         if (innerClassName == null)
         {
@@ -284,7 +285,7 @@ public class CodeDocumenter
             innerClassName = strLine.substringAfter('interface ');
         }
 
-        //system.debug(logginglevel.error, 'innerClassName = '+innerClassName);
+        //system.debug('innerClassName = '+innerClassName);
 
         return outerClassName + '.' + innerClassName;
     }
@@ -329,8 +330,8 @@ public class CodeDocumenter
             boolean isParsingNestedClass = false;
             boolean isCurrentlyInNestedClassConstruct = false;
             string currentNestedClassBeingParsed = null;
+            string strLineRaw = null;
             list<string> lstComments = new list<string>();
-            //ClassModel cModel = new ClassModel();
             IFile fileModel = null;
             list<MethodModel> methods = new list<MethodModel>();
             list<PropertyModel> properties = new list<PropertyModel>();
@@ -340,8 +341,11 @@ public class CodeDocumenter
             for (string strLine : file.Body.split('\n'))
             {
                 system.debug('_____________________________________________________________________ strLine == '+strLine);
+                //system.debug('fileParsed == '+fileParsed);
                 //system.debug('isParsingNestedClass == '+isParsingNestedClass);
                 //system.debug('isCurrentlyInNestedClassConstruct == '+isCurrentlyInNestedClassConstruct);
+
+                strLineRaw = strLine;
 
                 strLine = strLine.trim();
 
@@ -420,11 +424,11 @@ public class CodeDocumenter
                 if (fileParsed
                     && isParsingNestedClass
                     && ! isCurrentlyInNestedClassConstruct
-                    && strLine.containsIgnoreCase('{')
+                    && strLine.containsIgnoreCase('(')  // this will find methods and constructors ...probably not properties though.  We will wait and see on that.
                     )
                 {
                     isCurrentlyInNestedClassConstruct = true;
-                    //system.debug('isCurrentlyInNestedClassConstruct = true');
+                    system.debug('isCurrentlyInNestedClassConstruct = true');
                     continue;
                 }
 
@@ -436,7 +440,7 @@ public class CodeDocumenter
                     )
                 {
                     isCurrentlyInNestedClassConstruct = false;
-                    //system.debug('isCurrentlyInNestedClassConstruct = false');
+                    system.debug('isCurrentlyInNestedClassConstruct = false');
                     continue;
                 }
 
@@ -448,7 +452,7 @@ public class CodeDocumenter
                     )
                 {
                     isParsingNestedClass = false;
-                    //system.debug('isParsingNestedClass = false');
+                    system.debug('isParsingNestedClass = false');
                     continue;
                 }
 
@@ -469,13 +473,16 @@ public class CodeDocumenter
                 }
 
                 system.debug('@@@ strLine = '+strLine);
+                system.debug('fileParsed == '+fileParsed);
+                system.debug('isParsingNestedClass == '+isParsingNestedClass);
+                system.debug('fileModel instanceOf IInnerClasses == '+fileModel instanceOf IInnerClasses);
 
                 // ignore lines not dealing with scope
                 if ( ! strContainsScope(strLine)
                     && ! (fileModel instanceOf InterfaceModel)
                     )
                 {
-                    //system.debug('ignore lines not dealing with scope');
+                    system.debug('ignore lines not dealing with scope');
                     continue;
                 }
 
@@ -579,14 +586,17 @@ public class CodeDocumenter
                 {
                     system.debug('Found the inner class ... '+strLine);
 
-                    isParsingNestedClass = true;
+                    // isParsingNestedClass will be true as long as the first line of the nested class does not immediately close out with a "}"
+                    system.debug('strLineRaw = '+strLineRaw);
+                    isParsingNestedClass = ! strLineRaw.containsIgnoreCase('}');
+                    system.debug('isParsingNestedClass = ' + isParsingNestedClass);
 
                     string fullNameLine = determineCompleteNameLine(strLine, file.Body);
 
                     //add the class name outerClass name back in the strLine
                     string fullyQualifiedInnerClassName = findInnerClassFullyQualifiedName(fullNameLine, file.name);
 
-                    system.debug(logginglevel.error, 'fullyQualifiedInnerClassName = '+fullyQualifiedInnerClassName);
+                    system.debug('fullyQualifiedInnerClassName = '+fullyQualifiedInnerClassName);
 
 			        if (fullyQualifiedInnerClassName != null)
 			        {
@@ -613,7 +623,7 @@ public class CodeDocumenter
 
                         string augmentedStrLine = strLine.replace(' '+classNameWithoutOuterClassPrefix, ' '+fullyQualifiedInnerClassName);
 
-                        system.debug(logginglevel.error, 'augmentedStrLine = '+augmentedStrLine );
+                        system.debug('augmentedStrLine = '+augmentedStrLine );
 
                         // add the current strLine
                         this.nestedClassLineMap.get(file.id).get(currentNestedClassBeingParsed).add( augmentedStrLine );
@@ -629,6 +639,8 @@ public class CodeDocumenter
                     continue;
                 }
 
+                system.debug('did not find a class structure.  now looking for a method or property');
+
                 // look for a method
                 if (fileModel instanceOf IMethods
                     && strLine.containsIgnoreCase('(')
@@ -636,11 +648,11 @@ public class CodeDocumenter
                     && ! strLine.replace(' ','').containsIgnoreCase(file.name+'(')
                     )
                 {
-                    //system.debug(logginglevel.error, 'fileModel is instanceOf IMethods.');
+                    //system.debug('fileModel is instanceOf IMethods.');
                     MethodModel mModel = new MethodModel();
-                    //system.debug(logginglevel.error, '\n\nlstComments = '+lstComments+'\nstrLine = '+strLine+'\n\n');
+                    //system.debug('\n\nlstComments = '+lstComments+'\nstrLine = '+strLine+'\n\n');
                     fillModel(mModel, strLine, lstComments);
-                    //system.debug(logginglevel.error, 'mModel == '+mModel);
+                    //system.debug('mModel == '+mModel);
                         methods.add(mModel);
                     lstComments.clear();
                     continue;
@@ -779,7 +791,7 @@ public class CodeDocumenter
 
                 codeInfoRecordList.add( codeInfoRecord );
 
-                //system.debug(logginglevel.error, 'existingCodeInfoRecordsMap.containsKey(\''+codeInfoRecord.FileName__c+'\') = ' + existingCodeInfoRecordsMap.containsKey(codeInfoRecord.FileName__c));
+                //system.debug('existingCodeInfoRecordsMap.containsKey(\''+codeInfoRecord.FileName__c+'\') = ' + existingCodeInfoRecordsMap.containsKey(codeInfoRecord.FileName__c));
 
                 // Does this codeInfoRecord already exist?
                 if ( existingCodeInfoRecordsMap.containsKey(codeInfoRecord.FileName__c) )
@@ -956,13 +968,13 @@ public class CodeDocumenter
 
     private void registerClassLinkWithUOW(ClassLink__c classLinkRecord, CodeInfo__c codeInfoRecord, fflib_SObjectUnitOfWork uow)
     {
-        //system.debug(logginglevel.error, existingClassLinkRecordsMap.keyset());
-        //system.debug(logginglevel.error, classLinkRecord);
-        //system.debug(logginglevel.error, 'this.existingClassLinkRecordsMap.containsKey(classLinkRecord.LinksToName__c) = ' + this.existingClassLinkRecordsMap.containsKey(classLinkRecord.LinksToName__c));
+        //system.debug(existingClassLinkRecordsMap.keyset());
+        //system.debug(classLinkRecord);
+        //system.debug('this.existingClassLinkRecordsMap.containsKey(classLinkRecord.LinksToName__c) = ' + this.existingClassLinkRecordsMap.containsKey(classLinkRecord.LinksToName__c));
 
         if (this.existingClassLinkRecordsMap.containsKey(classLinkRecord.LinksToName__c))
         {
-            system.debug(logginglevel.error, 'this.existingClassLinkRecordsMap.get(classLinkRecord.LinksToName__c).containsKey(classLinkRecord.RelatedConstruct__c) = ' + this.existingClassLinkRecordsMap.get(classLinkRecord.LinksToName__c).containsKey(classLinkRecord.RelatedConstruct__c));
+            system.debug('this.existingClassLinkRecordsMap.get(classLinkRecord.LinksToName__c).containsKey(classLinkRecord.RelatedConstruct__c) = ' + this.existingClassLinkRecordsMap.get(classLinkRecord.LinksToName__c).containsKey(classLinkRecord.RelatedConstruct__c));
         }
 
         if (this.existingClassLinkRecordsMap.containsKey(classLinkRecord.LinksToName__c)
