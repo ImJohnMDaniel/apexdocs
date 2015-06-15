@@ -139,6 +139,21 @@ public class CodeDocumenter
             comment = comment.trim();
 
             // system.debug( comment );
+            if (comment.startsWith('/**'))
+            {
+                comment = comment.substringAfter('/**');
+            }
+
+            if (comment.endsWith('*/'))
+            {
+                comment = comment.substringBefore('*/');
+            }
+
+            // filter out blank comment lines
+            if (string.isBlank(comment.replace('*','').normalizeSpace()))
+            {
+                continue;
+            }
 
             // TODO: It might help to have a complete list of possible tags and see if the tagIdentified
             //      string matches one of the selections.
@@ -338,6 +353,7 @@ public class CodeDocumenter
             list<ConstructorModel> constructors = new list<ConstructorModel>();
             list<ClassLinkModel> innerClasses = new list<ClassLinkModel>();
 
+            // this variable will be used to detect when a class is opened and then closed on the same line.  e.g. " class foobar {  } "
             string fileNameWithoutEnclosingClassName = file.name.indexOf('.') == -1 ? file.name : file.name.substringAfter('.') ;
 
             for (string strLine : file.Body.split('\n'))
@@ -375,6 +391,7 @@ public class CodeDocumenter
                 {
                     commentsStarted = true;
                     lstComments.clear();
+                    lstComments.add('/**');
                     continue;
                 }
 
@@ -394,6 +411,7 @@ public class CodeDocumenter
 
                 if (commentsStarted && strLine.endsWith('*/'))
                 {
+                    lstComments.add(strLine);
                     commentsStarted = false;
                     continue;
                 }
@@ -419,6 +437,11 @@ public class CodeDocumenter
 
                 if (fileParsed && isParsingNestedClass)
                 {
+                    //system.debug('adding line >> '+strLine);
+
+                    this.nestedClassLineMap.get(file.id).get(currentNestedClassBeingParsed).addAll(lstComments);
+
+                    lstComments.clear();
                     this.nestedClassLineMap.get(file.id).get(currentNestedClassBeingParsed).add(strLine);
                 }
 
@@ -477,7 +500,7 @@ public class CodeDocumenter
                 system.debug('@@@ strLine = '+strLine);
                 system.debug('fileParsed == '+fileParsed);
                 system.debug('isParsingNestedClass == '+isParsingNestedClass);
-                system.debug('fileModel instanceOf IInnerClasses == '+fileModel instanceOf IInnerClasses);
+                system.debug('fileModel instanceOf IInnerClasses == '+(fileModel instanceOf IInnerClasses));
 
                 // ignore lines not dealing with scope
                 if ( ! strContainsScope(strLine)
@@ -620,6 +643,7 @@ public class CodeDocumenter
 
                         // add the class comments first
                         this.nestedClassLineMap.get(file.id).get(currentNestedClassBeingParsed).addAll(lstComments);
+                        //system.debug('inner class lstComments === \n\n\n'+lstComments+'\n\n\n');
 
                         string classNameWithoutOuterClassPrefix = fullyQualifiedInnerClassName.substringAfter('.');
 
