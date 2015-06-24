@@ -473,7 +473,11 @@ public class CodeDocumenter
                 if (fileParsed
                     && isParsingNestedClass
                     && ! isCurrentlyInNestedClassConstruct
-                    && strLine.containsIgnoreCase('}')
+                    && strLine.containsIgnoreCase('}') // this is the end of the class definition
+                    && ( ! strLine.containsIgnoreCase('{') // a class definition will not have a "{" and a "}"
+                        || ( strLine.containsIgnoreCase('{') // ....unless it is an empty class definition like an e_ception
+                            && string.isBlank(strLine.substringBetween('{','}').deleteWhitespace())  )
+                        )
                     )
                 {
                     isParsingNestedClass = false;
@@ -684,7 +688,7 @@ public class CodeDocumenter
                     //system.debug('\n\nlstComments = '+lstComments+'\nstrLine = '+strLine+'\n\n');
                     fillModel(mModel, strLine, lstComments);
                     //system.debug('mModel == '+mModel);
-                        methods.add(mModel);
+                    methods.add(mModel);
                     lstComments.clear();
                     continue;
                 }
@@ -696,7 +700,7 @@ public class CodeDocumenter
                 {
                     ConstructorModel constructorModel = new ConstructorModel();
                     fillModel(constructorModel, strLine, lstComments);
-                        constructors.add(constructorModel);
+                    constructors.add(constructorModel);
                     lstComments.clear();
                     continue;
                 }
@@ -709,7 +713,7 @@ public class CodeDocumenter
                     // must be a property of a Class
                     PropertyModel propertyModel = new PropertyModel();
                     fillModel(propertyModel, strLine, lstComments);
-                        properties.add(propertyModel);
+                    properties.add(propertyModel);
                     lstComments.clear();
                     continue;
                 }
