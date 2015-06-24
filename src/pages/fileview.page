@@ -290,9 +290,10 @@
                                         <th class="colLast" scope="col">Class Variables and Description</th>
                                     </tr>
                                     <apex:repeat value="{! propertiesable.properties }" var="property">
-                                    <apex:variable var="propertySignature" value="{! right(property.NameLine, (len(property.NameLine) - find(property.name, property.NameLine) + 1) ) }" />
+                                    <apex:variable var="secondSpacePosition" value="{! find(' ', property.NameLine, find(' ', property.NameLine) + 1 ) }" />
+                                    <apex:variable var="propertySignature" value="{! right(property.NameLine, (len(property.NameLine) - find(property.name, property.NameLine, secondSpacePosition) + 1) ) }" />
                                     <tr>
-                                        <td class="colFirst">{! left(property.NameLine, (find(property.name, property.NameLine) - 2) ) }</td>
+                                        <td class="colFirst">{! left(property.NameLine, (find(property.name, property.NameLine, secondSpacePosition) - 2) ) }</td>
                                         <td class="colLast"><strong><a href="#{! propertySignature }">{! propertySignature }</a></strong></td>
                                     </tr>
                                     </apex:repeat>
@@ -359,8 +360,9 @@
                             <a name="properties_detail"><!--   --></a>
                             <h3>Properties Detail</h3>
                             <apex:repeat value="{! propertiesable.properties }" var="property">
-                            <apex:variable var="propertySignature" value="{! right(property.NameLine, (len(property.NameLine) - find(property.name, property.NameLine) + 1) ) }" />
-                            <a name="{! propertySignature }"><!--  --></a>
+                            <apex:variable var="secondSpacePosition" value="{! find(' ', property.NameLine, find(' ', property.NameLine) + 1 ) }" />
+                            <apex:variable var="propertySignature" value="{! right(property.NameLine, (len(property.NameLine) - find(property.name, property.NameLine, secondSpacePosition) + 1) ) }" />
+                            <a name="{! trim(propertySignature) }"><!--  --></a>
                             <ul>
                                 <li>
                                     <h4>{! property.name }</h4>
@@ -381,7 +383,7 @@
                             <h3>Constructor Detail</h3>
                             <apex:repeat value="{! constructorsable.constructors }" var="constructor">
                             <apex:variable var="constructorSignature" value="{! right(constructor.NameLine, (len(constructor.NameLine) - find(constructor.name, constructor.NameLine) + 1) ) }" />
-                            <a name="{! constructorSignature }"><!--  --></a>
+                            <a name="{! trim(constructorSignature) }"><!--  --></a>
                             <ul>
                                 <li>
                                     <h4>{! constructor.name }</h4>
@@ -413,8 +415,7 @@
                             <h3>Method Detail</h3>
                             <apex:repeat value="{! methodsable.methods }" var="method">
                             <apex:variable var="methodSignature" value="{! right(method.NameLine, (len(method.NameLine) - find(method.name, method.NameLine) + 1) ) }" />
-
-                            <a name="{! methodSignature }"><!--  --></a>
+                            <a name="{! trim(methodSignature) }"><!--  --></a>
                             <ul>
                                 <li>
                                     <h4>{! method.name }</h4>
