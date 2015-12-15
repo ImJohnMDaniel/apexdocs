@@ -257,6 +257,8 @@ public class CodeDocumenter
             // the name(s) of the implement interface(s) should between the IMPLEMENTS_KEYWORD_STRING and the
             //     end of the string
             list<string> implementedInterfaces = strLine.substringAfter(IMPLEMENTS_KEYWORD_STRING.trim()).split(',');
+
+            system.debug('strLine = '+strLine);
             system.debug('implementedInterfaces = '+implementedInterfaces);
 
             if (implementedInterfaces != null)
@@ -532,6 +534,7 @@ public class CodeDocumenter
                     }
 
                     string fullNameLine = determineCompleteNameLine(strLine, file.Body);
+                    system.debug('fullNameLine in a class is ... '+fullNameLine);
 
                     fillModel((IApexModel)fileModel, fullNameLine, lstComments);
 
@@ -1007,10 +1010,10 @@ public class CodeDocumenter
         //system.debug(classLinkRecord);
         //system.debug('this.existingClassLinkRecordsMap.containsKey(classLinkRecord.LinksToName__c) = ' + this.existingClassLinkRecordsMap.containsKey(classLinkRecord.LinksToName__c));
 
-        if (this.existingClassLinkRecordsMap.containsKey(classLinkRecord.LinksToName__c))
-        {
-            system.debug('this.existingClassLinkRecordsMap.get(classLinkRecord.LinksToName__c).containsKey(classLinkRecord.RelatedConstruct__c) = ' + this.existingClassLinkRecordsMap.get(classLinkRecord.LinksToName__c).containsKey(classLinkRecord.RelatedConstruct__c));
-        }
+        //if (this.existingClassLinkRecordsMap.containsKey(classLinkRecord.LinksToName__c))
+        //{
+        //    system.debug('this.existingClassLinkRecordsMap.get(classLinkRecord.LinksToName__c).containsKey(classLinkRecord.RelatedConstruct__c) = ' + this.existingClassLinkRecordsMap.get(classLinkRecord.LinksToName__c).containsKey(classLinkRecord.RelatedConstruct__c));
+        //}
 
         if (this.existingClassLinkRecordsMap.containsKey(classLinkRecord.LinksToName__c)
             && this.existingClassLinkRecordsMap.get(classLinkRecord.LinksToName__c).containsKey(classLinkRecord.RelatedConstruct__c)

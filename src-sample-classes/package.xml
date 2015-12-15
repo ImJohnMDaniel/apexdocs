@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>sample-classes-related</fullName>
     <types>
         <members>BigClassWtihTwoInterfaces</members>
         <members>IAccountsSelector</members>
         <members>IContactsSelector</members>
         <members>XMLDom</members>
         <members>XMLDom2</members>
-        <members>fflib_ISObjectSelector</members>
         <name>ApexClass</name>
     </types>
-    <version>33.0</version>
+    <version>34.0</version>
 </Package>
