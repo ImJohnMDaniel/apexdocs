@@ -145,5 +145,5 @@
         <members>apexdocsjquery</members>
         <name>StaticResource</name>
     </types>
-    <version>33.0</version>
+    <version>36.0</version>
 </Package>
