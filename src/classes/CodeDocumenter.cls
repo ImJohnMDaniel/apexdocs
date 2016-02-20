@@ -8,7 +8,7 @@ public class CodeDocumenter
     {
         rgstrScope = new list<string>();
 
-        // These next three strings are added to the list in this manner to ensure that
+        // These next four strings are added to the list in this manner to ensure that
         // they are not accidently picked up as "methods" because they have the "scope" words
         rgstrScope.add('glo'+'bal');
         rgstrScope.add('pub'+'lic');
