@@ -1,6 +1,7 @@
 public class TestExample2 {
 
-    public class QueryField implements Comparable{
+    public class QueryField implements Comparable
+    {
         private List<Schema.SObjectField> fields;
 
         /**
@@ -14,4 +15,19 @@ public class TestExample2 {
             return null;
         }
     }
+    public class QueryField2 implements Comparable{
+        private List<Schema.SObjectField> fields;
+
+        /**
+         * The first field in the path to to field being queried
+         **/
+        public SObjectField getBaseField(){
+            return fields[0];
+        }
+
+        public Integer compareTo(Object o){
+            return null;
+        }
+    }
+    public class QueryField3 implements Comparable{private List<Schema.SObjectField> fields; public SObjectField getBaseField(){return fields[0];}public Integer compareTo(Object o){return null;}}
 }
