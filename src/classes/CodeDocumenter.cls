@@ -30,6 +30,8 @@ public class CodeDocumenter
 
     private static string EXTENDS_KEYWORD_STRING = ' extends ';
     private static string IMPLEMENTS_KEYWORD_STRING = ' implements ';
+    private static string CODE_BLOCK_DELIMETER_BEGIN = '{';
+    private static string CODE_BLOCK_DELIMETER_END = '}';
 
     // a map of nested class string lines grouped by the inner class' outer Apex class id and then the inner class name.
     private map<id, map<string, list<string>>> nestedClassLineMap = new map<id, map<string, list<string>>>();
@@ -42,6 +44,8 @@ public class CodeDocumenter
 
     private string determineCompleteNameLine(final string strLine, final string fullFileBody)
     {
+        system.debug('strLine = ' + strLine);
+        system.debug('fullFileBody = ' + fullFileBody);
         // The "nameLine" is the complete declaration of the class or interface.
         //      It could span multiple lines.  We need to determine if the current
         //      strLine is the complete "nameLine" or do we need to include the
@@ -50,19 +54,19 @@ public class CodeDocumenter
         //      current line
         string nameLine = null;
 
-        if ( strLine.containsIgnoreCase('{') )
+        if ( strLine.containsIgnoreCase(CODE_BLOCK_DELIMETER_BEGIN) )
         {
             // Then the "nameLine" is completely contained on the current strLine
             nameLine = strLine;
-            //system.debug('nameLine is the same as strLine');
+            system.debug('nameLine is the same as strLine');
         }
         else
         {
             // Then the "nameLine" spans the current strLine and subsequent lines.
             // In this case, the true "nameLine" is the strLine plus all subsequent
             // lines of the file.Body up to the first open bracket "{"
-            nameLine = (strLine + ' ' + (fullFileBody.substringBetween(strLine,'{'))).normalizeSpace();
-            //system.debug('nameLine is on multiple lines');
+            nameLine = (strLine + ' ' + (fullFileBody.substringBetween(strLine,CODE_BLOCK_DELIMETER_BEGIN))).normalizeSpace();
+            system.debug('nameLine is on multiple lines');
         }
 
         //system.debug('The NAMELINE is \n\n'+nameLine+'\n\n');
@@ -230,7 +234,7 @@ public class CodeDocumenter
                     //system.debug('description comment == >>'+comment.substring(i)+'<<');
                     if (model instanceOf IDescriptionLinks && isLinkTagInCommentFound)
                     {
-                        string commentLineLinkTo = comment.substringBetween('{','}').replace('@link','').normalizeSpace();
+                        string commentLineLinkTo = comment.substringBetween(CODE_BLOCK_DELIMETER_BEGIN,CODE_BLOCK_DELIMETER_END).replace('@link','').normalizeSpace();
 
                         ((IDescriptionLinks)model).addDescriptionLink(commentLineLinkTo);
                     }
@@ -345,6 +349,7 @@ public class CodeDocumenter
             boolean commentsStarted = false;
             boolean internalCommentsStarted = false;
             boolean isParsingNestedClass = false;
+            boolean isNestClassStrLineContainingCodeBlockDelimeter = false;
             boolean isCurrentlyInNestedClassConstruct = false;
             string currentNestedClassBeingParsed = null;
             string strLineRaw = null;
@@ -463,7 +468,7 @@ public class CodeDocumenter
                 if (fileParsed
                     && isParsingNestedClass
                     && isCurrentlyInNestedClassConstruct
-                    && strLine.containsIgnoreCase('}')
+                    && strLine.containsIgnoreCase(CODE_BLOCK_DELIMETER_END)
                     )
                 {
                     isCurrentlyInNestedClassConstruct = false;
@@ -475,10 +480,10 @@ public class CodeDocumenter
                 if (fileParsed
                     && isParsingNestedClass
                     && ! isCurrentlyInNestedClassConstruct
-                    && strLine.containsIgnoreCase('}') // this is the end of the class definition
-                    && ( ! strLine.containsIgnoreCase('{') // a class definition will not have a "{" and a "}"
-                        || ( strLine.containsIgnoreCase('{') // ....unless it is an empty class definition like an e_ception
-                            && string.isBlank(strLine.substringBetween('{','}').deleteWhitespace())  )
+                    && strLine.containsIgnoreCase(CODE_BLOCK_DELIMETER_END) // this is the end of the class definition
+                    && ( ! strLine.containsIgnoreCase(CODE_BLOCK_DELIMETER_BEGIN) // a class definition will not have a "{" and a "}"
+                        || ( strLine.containsIgnoreCase(CODE_BLOCK_DELIMETER_BEGIN) // ....unless it is an empty class definition like an e_ception
+                            && string.isBlank(strLine.substringBetween(CODE_BLOCK_DELIMETER_BEGIN,CODE_BLOCK_DELIMETER_END).deleteWhitespace())  )
                         )
                     )
                 {
@@ -496,7 +501,7 @@ public class CodeDocumenter
                 }
 
                 // ignore anything after an {.  this avoids confusing properties with methods.
-                ich = strLine.indexOf('{');
+                ich = strLine.indexOf(CODE_BLOCK_DELIMETER_BEGIN);
 
                 if (ich > -1)
                 {
@@ -620,7 +625,8 @@ public class CodeDocumenter
 
                     // isParsingNestedClass will be true as long as the first line of the nested class does not immediately close out with a "}"
                     system.debug('strLineRaw = '+strLineRaw);
-                    isParsingNestedClass = ! strLineRaw.containsIgnoreCase('}');
+                    isNestClassStrLineContainingCodeBlockDelimeter = strLineRaw.containsIgnoreCase(CODE_BLOCK_DELIMETER_BEGIN);
+                    isParsingNestedClass = ! strLineRaw.containsIgnoreCase(CODE_BLOCK_DELIMETER_END);
                     system.debug('isParsingNestedClass = ' + isParsingNestedClass);
 
                     string fullNameLine = determineCompleteNameLine(strLine, file.Body);
@@ -661,6 +667,18 @@ public class CodeDocumenter
                         // add the current strLine
                         this.nestedClassLineMap.get(file.id).get(currentNestedClassBeingParsed).add( augmentedStrLine );
 
+                        // if the nested class name had the code block delimeter then add it back to the nestedClassLineMap because it was stripped out just above here.
+                        if ( isNestClassStrLineContainingCodeBlockDelimeter )
+                        {
+                            this.nestedClassLineMap.get(file.id).get(currentNestedClassBeingParsed).add( CODE_BLOCK_DELIMETER_BEGIN );
+
+                            // if there is code on the same line as the nest class line full name, then add all of that as a new line
+                            if (strLine.substringAfter( CODE_BLOCK_DELIMETER_BEGIN ).length() > 0)
+                            {
+                                this.nestedClassLineMap.get(file.id).get(currentNestedClassBeingParsed).add( strLine.substringAfter( CODE_BLOCK_DELIMETER_BEGIN ) );
+                            }
+                        }
+
                         lstComments.clear();
 
                         if ( ! this.outerClassByIdMap.containsKey(file.id) )
@@ -668,6 +686,8 @@ public class CodeDocumenter
                             this.outerClassByIdMap.put(file.id, file);
                         }
 			        }
+
+			        isNestClassStrLineContainingCodeBlockDelimeter = false;
 
                     continue;
                 }
