@@ -1,0 +1,6 @@
+https://git-scm.com/book/en/v2/Git-Tools-Submodules
+https://git-scm.com/docs/git-submodule
+
+git submodule add --name apex-common git@github.com:financialforcedev/fflib-apex-common.git fflib-apex-common
+
+git submodule add --name apex-mocks git@github.com:financialforcedev/fflib-apex-mocks.git fflib-apex-mocks
