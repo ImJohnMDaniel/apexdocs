@@ -2,18 +2,18 @@ public class CodeDocumenter
 	implements Queueable
 	//Database.Batchable<SObject>
 {
-    public static list<string> rgstrScope { get; set; }
+    public static list<string> rgstrAccessModifier { get; set; }
 
     static
     {
-        rgstrScope = new list<string>();
+        rgstrAccessModifier = new list<string>();
 
         // These next four strings are added to the list in this manner to ensure that
-        // they are not accidently picked up as "methods" because they have the "scope" words
-        rgstrScope.add('glo'+'bal');
-        rgstrScope.add('pub'+'lic');
-        rgstrScope.add('prot'+'ected');
-        rgstrScope.add('webse'+'rvice');
+        // they are not accidently picked up as "methods" because they have the "access modifier" words
+        rgstrAccessModifier.add('glo'+'bal');
+        rgstrAccessModifier.add('pub'+'lic');
+        rgstrAccessModifier.add('prot'+'ected');
+        rgstrAccessModifier.add('webse'+'rvice');
     }
 
     private list<ApexClass> classListForProcessing = new list<ApexClass>();
@@ -524,25 +524,25 @@ public class CodeDocumenter
                 system.debug('fileParsed == '+fileParsed);
                 system.debug('isParsingNestedClass == '+isParsingNestedClass);
                 system.debug('fileModel instanceOf IInnerClasses == '+(fileModel instanceOf IInnerClasses));
-                system.debug('strContainsScope(strLine) == '+strContainsScope(strLine));
+                system.debug('strContainsAccessModifier(strLine) == '+strContainsAccessModifier(strLine));
                 system.debug('fileModel instanceOf InterfaceModel == '+(fileModel instanceOf InterfaceModel));
 
-                // if they put the scope value on one line and the clazz declaration on the next line, pick it up here.
-                if ( strContainsScope(strLine)
-                    && string.isblank(strLine.remove(retrieveScopeFromString(strLine)).trim())
+                // if they put the access modifier value on one line and the clazz declaration on the next line, pick it up here.
+                if ( strContainsAccessModifier(strLine)
+                    && string.isblank(strLine.remove(retrieveAccessModifierFromString(strLine)).trim())
                     )
                 {
-                    // Basically, we found a line with a scope vairable and no other string.  This means that the rest of the nameLine is on the next line.
+                    // Basically, we found a line with a access modifier variable and no other string.  This means that the rest of the nameLine is on the next line.
                     previousLineFragment = strLine;
                     system.debug('Found a name line fragment.  Adding it to the next line.');
                     continue;
                 }
-                // ignore lines not dealing with scope
-                else if ( ! strContainsScope(strLine)
+                // ignore lines not dealing with access modifier
+                else if ( ! strContainsAccessModifier(strLine)
                         && ! (fileModel instanceOf InterfaceModel)
                         )
                 {
-                    system.debug('ignore lines not dealing with scope');
+                    system.debug('ignore lines not dealing with access modifier');
                     continue;
                 }
 
@@ -1117,34 +1117,34 @@ public class CodeDocumenter
 
     }
 
-    private String retrieveScopeFromString(final string str)
+    private String retrieveAccessModifierFromString(final string str)
     {
-        string scopeFound = null;
+        string accessModifierFound = null;
 
-        for (string aScope : rgstrScope )
+        for (string aAccessModifier : rgstrAccessModifier )
         {
-            // does the string (str) contain aScope plus the single space?
+            // does the string (str) contain aAccessModifier plus the single space?
             //      Including the space eliminates words like "getGlobalDescribe"
-            //      Including the new line and evaluation of does the line end with the scope word finds
-            //          scenarios like when the nameline starts with a scope but then puts the class keyword on the next line.
-            //system.debug('evaluating if '+str+ ' is a scope compared to '+aScope);
-            if (str.containsIgnoreCase(aScope + ' ')
-                || str.containsIgnoreCase(aScope + '\n')
-                || (str.trim().endsWithIgnoreCase(aScope) && str.trim().startsWithIgnoreCase(aScope))
+            //      Including the new line and evaluation of does the line end with the access modifier word finds
+            //          scenarios like when the nameline starts with a access modifier but then puts the class keyword on the next line.
+            //system.debug('evaluating if '+str+ ' is a access modifier compared to '+aAccessModifier);
+            if (str.containsIgnoreCase(aAccessModifier + ' ')
+                || str.containsIgnoreCase(aAccessModifier + '\n')
+                || (str.trim().endsWithIgnoreCase(aAccessModifier) && str.trim().startsWithIgnoreCase(aAccessModifier))
                 )
             {
-                scopeFound = aScope;
+                accessModifierFound = aAccessModifier;
                 break;
             }
         }
 
-        //system.debug('scopeFound == '+scopeFound);
-        return scopeFound;
+        //system.debug('accessModifierFound == '+accessModifierFound);
+        return accessModifierFound;
     }
 
-    private boolean strContainsScope(final string str)
+    private boolean strContainsAccessModifier(final string str)
     {
-        return ! String.isBlank(retrieveScopeFromString(str));
+        return ! String.isBlank(retrieveAccessModifierFromString(str));
     }
 
     private CodeDocumenter()
