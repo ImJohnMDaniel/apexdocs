@@ -65,7 +65,7 @@ public class CodeDocumenter
             // Then the "nameLine" spans the current strLine and subsequent lines.
             // In this case, the true "nameLine" is the strLine plus all subsequent
             // lines of the file.Body up to the first open bracket "{"
-            nameLine = (strLine + ' ' + (fullFileBody.substringBetween(strLine,CODE_BLOCK_DELIMETER_BEGIN))).normalizeSpace();
+            nameLine = (strLine + ' ' + (fullFileBody.normalizeSpace().substringBetween(strLine,CODE_BLOCK_DELIMETER_BEGIN))).normalizeSpace();
             system.debug('nameLine is on multiple lines');
         }
 
@@ -282,30 +282,34 @@ public class CodeDocumenter
 
     private string findInnerClassFullyQualifiedName(final string strLine, final string outerClassName)
     {
+        system.debug('findInnerClassFullyQualifiedName strLine == '+strLine);
+        system.debug('findInnerClassFullyQualifiedName outerClassName == '+outerClassName);
+
         string innerClassName = strLine.substringBetween('class ', ' ');
         //system.debug('innerClassName = '+innerClassName);
 
-        if (innerClassName == null)
+        if (String.isBlank( innerClassName ))
         {
             // then there was no space after the innerClassName.  It was the EOL.
             // try again considering that use case
             innerClassName = strLine.substringAfter('class ');
         }
+        //system.debug('innerClassName = '+innerClassName);
 
-        if (innerClassName == null)
+        if (String.isBlank( innerClassName ))
         {
             // then there was no space after the innerClassName.  It was the EOL.
             // try again considering that use case
             innerClassName = strLine.substringBetween('interface ', ' ');
         }
+        //system.debug('innerClassName = '+innerClassName);
 
-        if (innerClassName == null)
+        if (String.isBlank( innerClassName ))
         {
             // then there was no space after the innerClassName.  It was the EOL.
             // try again considering that use case
             innerClassName = strLine.substringAfter('interface ');
         }
-
         //system.debug('innerClassName = '+innerClassName);
 
         return outerClassName + '.' + innerClassName;
