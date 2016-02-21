@@ -353,6 +353,7 @@ public class CodeDocumenter
             boolean isCurrentlyInNestedClassConstruct = false;
             string currentNestedClassBeingParsed = null;
             string strLineRaw = null;
+            string previousLineFragment = null;
             list<string> lstComments = new list<string>();
             IFile fileModel = null;
             list<MethodModel> methods = new list<MethodModel>();
@@ -369,6 +370,13 @@ public class CodeDocumenter
                 //system.debug('fileParsed == '+fileParsed);
                 //system.debug('isParsingNestedClass == '+isParsingNestedClass);
                 //system.debug('isCurrentlyInNestedClassConstruct == '+isCurrentlyInNestedClassConstruct);
+
+                if ( ! string.isblank(previousLineFragment) )
+                {
+                    strLine = previousLineFragment + ' ' + strLine.trim();
+                    previousLineFragment = null;
+                    system.debug('_____________________________________________________________________ strLine == '+strLine);
+                }
 
                 strLineRaw = strLine;
 
@@ -512,11 +520,23 @@ public class CodeDocumenter
                 system.debug('fileParsed == '+fileParsed);
                 system.debug('isParsingNestedClass == '+isParsingNestedClass);
                 system.debug('fileModel instanceOf IInnerClasses == '+(fileModel instanceOf IInnerClasses));
+                system.debug('strContainsScope(strLine) == '+strContainsScope(strLine));
+                system.debug('fileModel instanceOf InterfaceModel == '+(fileModel instanceOf InterfaceModel));
 
-                // ignore lines not dealing with scope
-                if ( ! strContainsScope(strLine)
-                    && ! (fileModel instanceOf InterfaceModel)
+                // if they put the scope value on one line and the clazz declaration on the next line, pick it up here.
+                if ( strContainsScope(strLine)
+                    && string.isblank(strLine.remove(retrieveScopeFromString(strLine)).trim())
                     )
+                {
+                    // Basically, we found a line with a scope vairable and no other string.  This means that the rest of the nameLine is on the next line.
+                    previousLineFragment = strLine;
+                    system.debug('Found a name line fragment.  Adding it to the next line.');
+                    continue;
+                }
+                // ignore lines not dealing with scope
+                else if ( ! strContainsScope(strLine)
+                        && ! (fileModel instanceOf InterfaceModel)
+                        )
                 {
                     system.debug('ignore lines not dealing with scope');
                     continue;
@@ -1093,20 +1113,34 @@ public class CodeDocumenter
 
     }
 
-    private boolean strContainsScope(final string str)
+    private String retrieveScopeFromString(final string str)
     {
-//        system.debug('str == '+str);
+        string scopeFound = null;
 
         for (string aScope : rgstrScope )
         {
             // does the string (str) contain aScope plus the single space?
             //      Including the space eliminates words like "getGlobalDescribe"
-            if (str.containsIgnoreCase(aScope + ' '))
+            //      Including the new line and evaluation of does the line end with the scope word finds
+            //          scenarios like when the nameline starts with a scope but then puts the class keyword on the next line.
+            //system.debug('evaluating if '+str+ ' is a scope compared to '+aScope);
+            if (str.containsIgnoreCase(aScope + ' ')
+                || str.containsIgnoreCase(aScope + '\n')
+                || (str.trim().endsWithIgnoreCase(aScope) && str.trim().startsWithIgnoreCase(aScope))
+                )
             {
-                return true;
+                scopeFound = aScope;
+                break;
             }
         }
-        return false;
+
+        //system.debug('scopeFound == '+scopeFound);
+        return scopeFound;
+    }
+
+    private boolean strContainsScope(final string str)
+    {
+        return ! String.isBlank(retrieveScopeFromString(str));
     }
 
     private CodeDocumenter()
