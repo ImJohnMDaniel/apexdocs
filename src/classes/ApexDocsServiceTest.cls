@@ -15,7 +15,7 @@ private class ApexDocsServiceTest
 	@isTest
 	static void test()
 	{
-		ApexDocsService.documentAll();
+//		ApexDocsService.documentAll();
 	}
 
 
