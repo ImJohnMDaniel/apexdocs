@@ -3,7 +3,7 @@
  *  @see IFile
  */
 public
- class Sample2
+ class ReferenceClass0002
 {
     private static list<string> accessModifierList { get; set; }
     private static string EXTENDS_KEYWORD_STRING = ' extends ';
@@ -30,7 +30,7 @@ public
     /*
      *  Private constructor.
      */
-    private Sample2()
+    private ReferenceClass0002()
     {
 
     }
@@ -39,7 +39,7 @@ public
      *  Main Constructor
      *  @param Apex classes to be parsed
      */
-    public Sample2(list<ApexClass> apexClasses)
+    public ReferenceClass0002(list<ApexClass> apexClasses)
     {
         this.m_apexClasses = apexClasses;
     }
@@ -66,7 +66,7 @@ public
     /**
      *
      */
-    public Sample2 isPrivateConstructsIncludedInModel()
+    public ReferenceClass0002 isPrivateConstructsIncludedInModel()
     {
         this.m_isPrivateConstructsIncludedInModel = true;
 
@@ -82,7 +82,7 @@ public
     {
         for (ApexClass clazz : m_apexClasses)
         {
-            m_models.add( (new Sample2.ParsingUtil(clazz, this)).parse() );
+            m_models.add( (new ReferenceClass0002.ParsingUtil(clazz, this)).parse() );
         }
 
         return m_models;
@@ -94,7 +94,7 @@ public
     private class ParsingUtil
     {
         private ApexClass m_clazz;
-        private Sample2 m_apexClassesParserInstance;
+        private ReferenceClass0002 m_apexClassesParserInstance;
         private list<string> m_currentClassLines = new list<string>();
         private integer m_currentLine = 0;
         private integer m_numberOfClassLines = 0;
@@ -114,7 +114,7 @@ public
 
         }
 
-        public ParsingUtil(final ApexClass clazz, Sample2 apexClassesParserInstance)
+        public ParsingUtil(final ApexClass clazz, ReferenceClass0002 apexClassesParserInstance)
         {
             this.m_clazz = clazz;
             this.m_currentClassLines.addAll( clazz.Body.split('\n') );

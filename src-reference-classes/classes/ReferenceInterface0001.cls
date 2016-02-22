@@ -1,4 +1,4 @@
-public interface IAccountsSelector extends fflib_ISObjectSelector {
+public interface ReferenceInterface0001 extends fflib_ISObjectSelector {
     list<Account> selectById(set<id> idSet);
     list<Account> selectById(set<string> idStringSet);
     list<Account> selectByOwnerIdAndAccountSource(final set<id> ownerId, final string accountSource);

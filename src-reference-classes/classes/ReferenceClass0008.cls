@@ -1,4 +1,4 @@
-public with sharing class BigClassWtihTwoInterfaces {
+public with sharing class ReferenceClass0008 {
 
     /**
      *  Notice this interface extends a parent interface but the

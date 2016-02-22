@@ -29,7 +29,7 @@
  * of the Apex Enterprise Patterns, Service, Unit Of Work, Selector and Domain.
  *   See the sample applications Application.cls file for an example
  **/
-public class Sample
+public class ReferenceClass0001
 {
     /**
      * Class implements a Unit of Work factory

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>ReferenceClass0001</members>
+        <members>ReferenceClass0002</members>
+        <members>ReferenceClass0003</members>
+        <members>ReferenceClass0004</members>
+        <members>ReferenceClass0005</members>
+        <members>ReferenceClass0006XMLDom</members>
+        <members>ReferenceClass0007XMLDom2</members>
+        <members>ReferenceClass0008</members>
+        <members>ReferenceInterface0001</members>
+        <members>ReferenceInterface0002</members>
+        <name>ApexClass</name>
+    </types>
+    <version>36.0</version>
+</Package>

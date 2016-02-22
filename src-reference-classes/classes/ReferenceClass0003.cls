@@ -3,7 +3,7 @@
  *  @see IFile
  */
 public
- class Sample3
+ class ReferenceClass0003
 {
     private static list<string> accessModifierList { get; set; }
     private static string EXTENDS_KEYWORD_STRING = ' extends ';
@@ -30,7 +30,7 @@ public
     /*
      *  Private constructor.
      */
-    private Sample3()
+    private ReferenceClass0003()
     {
 
     }
@@ -39,7 +39,7 @@ public
      *  Main Constructor
      *  @param Apex classes to be parsed
      */
-    public Sample3(list<ApexClass> apexClasses)
+    public ReferenceClass0003(list<ApexClass> apexClasses)
     {
         this.m_apexClasses = apexClasses;
     }
@@ -53,7 +53,7 @@ public
     {
         for (ApexClass clazz : m_apexClasses)
         {
-            m_models.add( (new Sample3.ParsingUtil(clazz, this)).parse() );
+            m_models.add( (new ReferenceClass0003.ParsingUtil(clazz, this)).parse() );
         }
 
         return m_models;
@@ -64,7 +64,7 @@ public
      */
     private class ParsingUtil
     {
-        private ParsingUtil(final ApexClass clazz, Sample3 apexClassesParserInstance)
+        private ParsingUtil(final ApexClass clazz, ReferenceClass0003 apexClassesParserInstance)
         {
 
         }
