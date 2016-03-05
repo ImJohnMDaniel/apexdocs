@@ -13,6 +13,7 @@ public class ClassModel extends ApexConstructBaseModel
 {
 	private id apexFileId;
     private id codeInfoId;
+    private id codeInfoAttachmentId;
 
     private string apexFileLastModifiedByName;
     private id apexFileLastModifiedById;
@@ -92,6 +93,11 @@ public class ClassModel extends ApexConstructBaseModel
     public override type getClassType()
     {
         return ClassModel.class;
+    }
+
+    public id getCodeInfoAttachmentId()
+    {
+        return this.codeInfoAttachmentId;
     }
 
     public list<ConstructorModel> getConstructors()
@@ -299,6 +305,11 @@ public class ClassModel extends ApexConstructBaseModel
     public void setAuthor(final list<string> authors)
     {
         this.authors = authors;
+    }
+
+    public void setCodeInfoAttachmentId(final id codeInfoAttachmentId)
+    {
+        this.codeInfoAttachmentId = codeInfoAttachmentId;
     }
 
     public void setConstructors(final list<ConstructorModel> constructors)

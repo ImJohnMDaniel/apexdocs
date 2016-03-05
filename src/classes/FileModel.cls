@@ -5,6 +5,7 @@ public class FileModel
 	private type fileType;
 	private string fileName;
 	private id apexFileId;
+	private id codeInfoAttachmentId;
 	private boolean isModelCurrent = false;
 
 	private FileModel()
@@ -49,6 +50,16 @@ public class FileModel
     public void setApexFileId(final id apexFileId)
     {
         this.apexFileId = apexFileId;
+    }
+
+    public id getCodeInfoAttachmentId()
+    {
+        return this.codeInfoAttachmentId;
+    }
+
+    public void setCodeInfoAttachmentId(final id codeInfoAttachmentId)
+    {
+        this.codeInfoAttachmentId = codeInfoAttachmentId;
     }
 
     /**

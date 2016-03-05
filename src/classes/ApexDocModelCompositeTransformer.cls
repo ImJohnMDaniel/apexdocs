@@ -107,6 +107,8 @@ public class ApexDocModelCompositeTransformer
             output = (IFile)JSON.deserialize(modelData, modelType);
 
             output.setId(input.ParentId);
+
+            output.setCodeInfoAttachmentId(input.id);
         }
         catch (System.SObjectException soe)
         {
