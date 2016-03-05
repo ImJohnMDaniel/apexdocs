@@ -468,7 +468,7 @@
                 </apex:outputPanel>
 
                 <div class="codeInfoFooter">
-                    <apex:outputLink value="{!URLFOR($Action.Attachment.Download, fileable.codeInfoAttachmentId)}" target="_blank">Click here to download the JSON representation for {! apexModelable.name }</apex:outputLink>
+                    <apex:outputLink value="{!URLFOR($Action.Attachment.Download, fileable.codeInfoAttachmentId)}" target="_blank" rendered="{! fileable != null }">Click here to download the JSON representation for {! apexModelable.name }</apex:outputLink>
                 </div>
             </div>
         </apex:outputPanel>
