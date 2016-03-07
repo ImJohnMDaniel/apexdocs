@@ -352,8 +352,14 @@ public class CodeDocumenter
             boolean fileParsed = false;
             boolean commentsStarted = false;
             boolean internalCommentsStarted = false;
+
             boolean isParsingNestedClass = false;
+            boolean isParsingAPrivateNestedClass = false;
             boolean isNestClassStrLineContainingCodeBlockDelimeter = false;
+            // when in a method, property, or constructor, this will keep track of how many nested "code blocks" we are currently at.
+            integer currentCodeBlockDepth = 0;
+
+            // set to true when parsing a method, property, or constructor of a nested class
             boolean isCurrentlyInNestedClassConstruct = false;
             string currentNestedClassBeingParsed = null;
             string strLineRaw = null;
@@ -373,6 +379,7 @@ public class CodeDocumenter
                 system.debug('_____________________________________________________________________ strLine == '+strLine);
                 //system.debug('fileParsed == '+fileParsed);
                 //system.debug('isParsingNestedClass == '+isParsingNestedClass);
+                //system.debug('isParsingAPrivateNestedClass == '+isParsingAPrivateNestedClass);
                 //system.debug('isCurrentlyInNestedClassConstruct == '+isCurrentlyInNestedClassConstruct);
 
                 if ( ! string.isblank(previousLineFragment) )
@@ -454,7 +461,10 @@ public class CodeDocumenter
                     continue;
                 }
 
-                if (fileParsed && isParsingNestedClass)
+                if (fileParsed
+                    && isParsingNestedClass
+                    && ! isParsingAPrivateNestedClass
+                    )
                 {
                     //system.debug('adding line >> '+strLine);
 
@@ -480,15 +490,32 @@ public class CodeDocumenter
                 if (fileParsed
                     && isParsingNestedClass
                     && isCurrentlyInNestedClassConstruct
-                    && strLine.containsIgnoreCase(CODE_BLOCK_DELIMETER_END)
+                    && (strLine.containsIgnoreCase(CODE_BLOCK_DELIMETER_BEGIN) || strLine.containsIgnoreCase(CODE_BLOCK_DELIMETER_END))
                     )
                 {
-                    isCurrentlyInNestedClassConstruct = false;
-                    system.debug('isCurrentlyInNestedClassConstruct = false');
+                    if (strLine.containsIgnoreCase(CODE_BLOCK_DELIMETER_END)
+                        && currentCodeBlockDepth == 0)
+                    {
+                        // we are finished with this method, property, or constructor
+                        isCurrentlyInNestedClassConstruct = false;
+                        system.debug('isCurrentlyInNestedClassConstruct = false');
+                    }
+                    else
+                    {
+	                    if (strLine.containsIgnoreCase(CODE_BLOCK_DELIMETER_BEGIN))
+	                    {
+	                        ++currentCodeBlockDepth;
+	                    }
+
+	                    if (strLine.containsIgnoreCase(CODE_BLOCK_DELIMETER_END))
+	                    {
+	                        --currentCodeBlockDepth;
+	                    }
+                    }
                     continue;
                 }
 
-                // determine the end of the nested classed.
+                // determine the end of the nested class.
                 if (fileParsed
                     && isParsingNestedClass
                     && ! isCurrentlyInNestedClassConstruct
@@ -501,6 +528,7 @@ public class CodeDocumenter
                 {
                     isParsingNestedClass = false;
                     system.debug('isParsingNestedClass = false');
+                    isParsingAPrivateNestedClass = false;
                     continue;
                 }
 
@@ -537,6 +565,20 @@ public class CodeDocumenter
                     system.debug('Found a name line fragment.  Adding it to the next line.');
                     continue;
                 }
+                // let a private nested class slip by the following check so that it can at least register the fact that we
+                //  processing a nested class
+                else if ( fileParsed
+                    && ! isParsingNestedClass
+                    && fileModel instanceOf IInnerClasses
+                    && ( strLine.containsIgnoreCase(' class ')
+                        || strLine.containsIgnoreCase(' interface ')
+                        )
+                    && strLine.containsIgnoreCase('private ')
+                    )
+                {
+                    // the "if" statement catches it and bypasses the next if block to proceed on through.
+                    isParsingAPrivateNestedClass = true;
+                }
                 // ignore lines not dealing with access modifier
                 else if ( ! strContainsAccessModifier(strLine)
                         && ! (fileModel instanceOf InterfaceModel)
@@ -548,7 +590,8 @@ public class CodeDocumenter
 
                 // look for a class
                 if ( ! fileParsed
-                    && strLine.containsIgnoreCase(' class '))
+                    && strLine.containsIgnoreCase(' class ')
+                    )
                 {
                     system.debug('Found an class ... '+strLine);
                     fileParsed = true;
@@ -645,71 +688,76 @@ public class CodeDocumenter
                         )
                     )
                 {
-                    system.debug('Found the inner class ... '+strLine);
+                    system.debug('Found the nested class ... '+strLine);
 
                     // isParsingNestedClass will be true as long as the first line of the nested class does not immediately close out with a "}"
                     system.debug('strLineRaw = '+strLineRaw);
                     isNestClassStrLineContainingCodeBlockDelimeter = strLineRaw.containsIgnoreCase(CODE_BLOCK_DELIMETER_BEGIN);
                     isParsingNestedClass = ! strLineRaw.containsIgnoreCase(CODE_BLOCK_DELIMETER_END);
-                    system.debug('isParsingNestedClass = ' + isParsingNestedClass);
+                    //system.debug('isParsingNestedClass = ' + isParsingNestedClass);
+                    //system.debug('isParsingAPrivateNestedClass = ' + isParsingAPrivateNestedClass);
 
-                    string fullNameLine = determineCompleteNameLine(strLine, file.Body);
+                    // if we are parsing a private nested class, then ignore creating a model for it and move on.
+                    if ( ! isParsingAPrivateNestedClass )
+                    {
+                        string fullNameLine = determineCompleteNameLine(strLine, file.Body);
 
-                    //add the class name outerClass name back in the strLine
-                    string fullyQualifiedInnerClassName = findInnerClassFullyQualifiedName(fullNameLine, file.name);
+                        //add the class name outerClass name back in the strLine
+                        string fullyQualifiedInnerClassName = findInnerClassFullyQualifiedName(fullNameLine, file.name);
 
-                    system.debug('fullyQualifiedInnerClassName = '+fullyQualifiedInnerClassName);
+                        system.debug('fullyQualifiedInnerClassName = '+fullyQualifiedInnerClassName);
 
-			        if (fullyQualifiedInnerClassName != null)
-			        {
-                        ClassLinkModel innerClassLink = new ClassLinkModel(ClassLinkModel.ClassLinkTypes.INNERCLASS, fullyQualifiedInnerClassName);
-
-                        innerClasses.add( innerClassLink );
-
-                        currentNestedClassBeingParsed = fullyQualifiedInnerClassName;
-
-                        if ( ! this.nestedClassLineMap.containsKey(file.id) )
+                        if (fullyQualifiedInnerClassName != null)
                         {
-                            this.nestedClassLineMap.put( file.id, new map<string, list<String>>());
-                        }
+                            ClassLinkModel innerClassLink = new ClassLinkModel(ClassLinkModel.ClassLinkTypes.INNERCLASS, fullyQualifiedInnerClassName);
 
-                        if ( ! this.nestedClassLineMap.get(file.id).containsKey(currentNestedClassBeingParsed) )
-                        {
-                            this.nestedClassLineMap.get(file.id).put(currentNestedClassBeingParsed, new list<String>() );
-                        }
+                            innerClasses.add( innerClassLink );
 
-                        // add the class comments first
-                        this.nestedClassLineMap.get(file.id).get(currentNestedClassBeingParsed).addAll(lstComments);
-                        //system.debug('inner class lstComments === \n\n\n'+lstComments+'\n\n\n');
+                            currentNestedClassBeingParsed = fullyQualifiedInnerClassName;
 
-                        string classNameWithoutOuterClassPrefix = fullyQualifiedInnerClassName.substringAfter('.');
-
-                        string augmentedStrLine = strLine.replace(' '+classNameWithoutOuterClassPrefix, ' '+fullyQualifiedInnerClassName);
-
-                        system.debug('augmentedStrLine = '+augmentedStrLine );
-
-                        // add the current strLine
-                        this.nestedClassLineMap.get(file.id).get(currentNestedClassBeingParsed).add( augmentedStrLine );
-
-                        // if the nested class name had the code block delimeter then add it back to the nestedClassLineMap because it was stripped out just above here.
-                        if ( isNestClassStrLineContainingCodeBlockDelimeter )
-                        {
-                            this.nestedClassLineMap.get(file.id).get(currentNestedClassBeingParsed).add( CODE_BLOCK_DELIMETER_BEGIN );
-
-                            // if there is code on the same line as the nest class line full name, then add all of that as a new line
-                            if (strLine.substringAfter( CODE_BLOCK_DELIMETER_BEGIN ).length() > 0)
+                            if ( ! this.nestedClassLineMap.containsKey(file.id) )
                             {
-                                this.nestedClassLineMap.get(file.id).get(currentNestedClassBeingParsed).add( strLine.substringAfter( CODE_BLOCK_DELIMETER_BEGIN ) );
+                                this.nestedClassLineMap.put( file.id, new map<string, list<String>>());
+                            }
+
+                            if ( ! this.nestedClassLineMap.get(file.id).containsKey(currentNestedClassBeingParsed) )
+                            {
+                                this.nestedClassLineMap.get(file.id).put(currentNestedClassBeingParsed, new list<String>() );
+                            }
+
+                            // add the class comments first
+                            this.nestedClassLineMap.get(file.id).get(currentNestedClassBeingParsed).addAll(lstComments);
+                            //system.debug('inner class lstComments === \n\n\n'+lstComments+'\n\n\n');
+
+                            string classNameWithoutOuterClassPrefix = fullyQualifiedInnerClassName.substringAfter('.');
+
+                            string augmentedStrLine = strLine.replace(' '+classNameWithoutOuterClassPrefix, ' '+fullyQualifiedInnerClassName);
+
+                            system.debug('augmentedStrLine = '+augmentedStrLine );
+
+                            // add the current strLine
+                            this.nestedClassLineMap.get(file.id).get(currentNestedClassBeingParsed).add( augmentedStrLine );
+
+                            // if the nested class name had the code block delimeter then add it back to the nestedClassLineMap because it was stripped out just above here.
+                            if ( isNestClassStrLineContainingCodeBlockDelimeter )
+                            {
+                                this.nestedClassLineMap.get(file.id).get(currentNestedClassBeingParsed).add( CODE_BLOCK_DELIMETER_BEGIN );
+
+                                // if there is code on the same line as the nest class line full name, then add all of that as a new line
+                                if (strLine.substringAfter( CODE_BLOCK_DELIMETER_BEGIN ).length() > 0)
+                                {
+                                    this.nestedClassLineMap.get(file.id).get(currentNestedClassBeingParsed).add( strLine.substringAfter( CODE_BLOCK_DELIMETER_BEGIN ) );
+                                }
+                            }
+
+                            lstComments.clear();
+
+                            if ( ! this.outerClassByIdMap.containsKey(file.id) )
+                            {
+                                this.outerClassByIdMap.put(file.id, file);
                             }
                         }
-
-                        lstComments.clear();
-
-                        if ( ! this.outerClassByIdMap.containsKey(file.id) )
-                        {
-                            this.outerClassByIdMap.put(file.id, file);
-                        }
-			        }
+                    }
 
 			        isNestClassStrLineContainingCodeBlockDelimeter = false;
 
@@ -727,6 +775,7 @@ public class CodeDocumenter
                 if (fileModel instanceOf IMethods
                     && strLine.containsIgnoreCase('(')
                     && ! isParsingNestedClass
+                    && ! isParsingAPrivateNestedClass
                     && ! strLine.replace(' ','').containsIgnoreCase(fileNameWithoutEnclosingClassName+'(')
                     )
                 {
