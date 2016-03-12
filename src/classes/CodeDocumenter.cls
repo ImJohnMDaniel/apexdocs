@@ -482,7 +482,7 @@ public class CodeDocumenter
                     )
                 {
                     isCurrentlyInNestedClassConstruct = true;
-                    system.debug('isCurrentlyInNestedClassConstruct = true');
+                    system.debug('setting isCurrentlyInNestedClassConstruct == true');
                     continue;
                 }
 
@@ -494,11 +494,12 @@ public class CodeDocumenter
                     )
                 {
                     if (strLine.containsIgnoreCase(CODE_BLOCK_DELIMETER_END)
+                        && ! strLine.containsIgnoreCase(CODE_BLOCK_DELIMETER_BEGIN)
                         && currentCodeBlockDepth == 0)
                     {
                         // we are finished with this method, property, or constructor
                         isCurrentlyInNestedClassConstruct = false;
-                        system.debug('isCurrentlyInNestedClassConstruct = false');
+                        system.debug('setting isCurrentlyInNestedClassConstruct == false');
                     }
                     else
                     {
@@ -511,6 +512,7 @@ public class CodeDocumenter
 	                    {
 	                        --currentCodeBlockDepth;
 	                    }
+	                    system.debug('currentCodeBlockDepth == '+currentCodeBlockDepth);
                     }
                     continue;
                 }
@@ -548,12 +550,13 @@ public class CodeDocumenter
                     strLine = strLine.substring(0, ich);
                 }
 
-                system.debug('@@@ strLine = '+strLine);
-                system.debug('fileParsed == '+fileParsed);
-                system.debug('isParsingNestedClass == '+isParsingNestedClass);
-                system.debug('fileModel instanceOf IInnerClasses == '+(fileModel instanceOf IInnerClasses));
-                system.debug('strContainsAccessModifier(strLine) == '+strContainsAccessModifier(strLine));
-                system.debug('fileModel instanceOf InterfaceModel == '+(fileModel instanceOf InterfaceModel));
+                system.debug('\n\n@@@ strLine = '+strLine+'\n'
+                            +'fileParsed == '+fileParsed+'\n'
+                            +'fileModel instanceOf IInnerClasses == '+(fileModel instanceOf IInnerClasses)+'\n'
+                            +'strContainsAccessModifier(strLine) == '+strContainsAccessModifier(strLine)+'\n'
+                            +'fileModel instanceOf InterfaceModel == '+(fileModel instanceOf InterfaceModel)+'\n'
+                            +'isParsingNestedClass == '+isParsingNestedClass+'\n'
+                            +'isCurrentlyInNestedClassConstruct == '+isCurrentlyInNestedClassConstruct+'\n\n');
 
                 // if they put the access modifier value on one line and the clazz declaration on the next line, pick it up here.
                 if ( strContainsAccessModifier(strLine)
