@@ -500,6 +500,7 @@ public class CodeDocumenter
                         // we are finished with this method, property, or constructor
                         isCurrentlyInNestedClassConstruct = false;
                         system.debug('setting isCurrentlyInNestedClassConstruct == false');
+                        // now let it continue onto the next if check.  Don't "continue" on with the For/Loop just yet
                     }
                     else
                     {
@@ -513,8 +514,9 @@ public class CodeDocumenter
 	                        --currentCodeBlockDepth;
 	                    }
 	                    system.debug('currentCodeBlockDepth == '+currentCodeBlockDepth);
+
+                        continue;
                     }
-                    continue;
                 }
 
                 // determine the end of the nested class.
@@ -529,7 +531,7 @@ public class CodeDocumenter
                     )
                 {
                     isParsingNestedClass = false;
-                    system.debug('isParsingNestedClass = false');
+                    system.debug('setting isParsingNestedClass = false');
                     isParsingAPrivateNestedClass = false;
                     continue;
                 }
