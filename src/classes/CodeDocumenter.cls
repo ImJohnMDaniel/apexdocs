@@ -483,6 +483,13 @@ public class CodeDocumenter
                 {
                     isCurrentlyInNestedClassConstruct = true;
                     system.debug('setting isCurrentlyInNestedClassConstruct == true');
+
+                    if (strLine.containsIgnoreCase(CODE_BLOCK_DELIMETER_BEGIN)
+                        && ! strLine.containsIgnoreCase(CODE_BLOCK_DELIMETER_END)
+                        )
+                    {
+                        ++currentCodeBlockDepth;
+                    }
                     continue;
                 }
 
