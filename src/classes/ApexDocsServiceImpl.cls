@@ -28,11 +28,45 @@ public with sharing class ApexDocsServiceImpl
         list<ApexClass> apexClasses = ApexClassesSelector.newInstance().selectById( new set<id>{ model.getApexFileId() } );
 
         if ( ! apexClasses.isEmpty()
-            && model instanceOf IApexFileInfo
-            && apexClasses[0].lastmodifieddate == ((IApexFileInfo)model).getApexFileLastModifiedDate()
+            && ( model instanceOf IApexFileInfo
+                || model instanceOf IOuterClassible
+                )
             )
         {
-            model.setIsModelCurrent(true);
+            ApexClass apexClassToCheck = null;
+            IFile modelToCheck = null;
+
+            if (model instanceOf IOuterClassible)
+            {
+                ClassLinkModel outerClassLinkModel = ((IOuterClassible)model).getOuterClass();
+
+                String outerClassInfoRecord = outerClassLinkModel.getName();
+
+                list<Attachment> apexDocRelatedAttachments = AttachmentsSelector.newInstance().selectByApexClassNameParent( new set<string>{ outerClassInfoRecord } );
+
+                IFile outerClassModel = ApexDocModelCompositeTransformer.convertAttachmentToDomainModel( apexDocRelatedAttachments[0] );
+
+                list<ApexClass> outerApexClasses = ApexClassesSelector.newInstance().selectById( new set<id>{ outerClassModel.getApexFileId() } );
+
+                apexClassToCheck = outerApexClasses[0];
+
+                modelToCheck = outerClassModel;
+            }
+            else
+            {
+                apexClassToCheck = apexClasses[0];
+
+                modelToCheck = model;
+            }
+
+            // This is the original piece of code.  This is when the class/interface in an outerclass
+            //if (apexClassToCheck.lastmodifieddate == ((IApexFileInfo)model).getApexFileLastModifiedDate())
+            if (apexClassToCheck.lastmodifieddate == ((IApexFileInfo)modelToCheck).getApexFileLastModifiedDate())
+            {
+                model.setIsModelCurrent(true);
+            }
+
+
         }
 
         if (model instanceOf IImplementable)
