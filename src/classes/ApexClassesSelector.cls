@@ -12,8 +12,6 @@ public class ApexClassesSelector
         return (IApexClassesSelector) Application.Selector.newInstance(ApexClass.SObjectType);
     }
 
-    private static final string ADDITIONAL_FIELDS = 'LastModifiedBy.Name, CreatedBy.Name';
-
     public list<Schema.SObjectField> getSObjectFieldList()
     {
         return new list<Schema.SObjectField>
@@ -29,9 +27,22 @@ public class ApexClassesSelector
             ApexClass.LengthWithoutComments,
             ApexClass.CreatedDate,
             ApexClass.CreatedById,
+            ApexClass.CreatedBy.Name,
             ApexClass.LastModifiedDate,
-            ApexClass.LastModifiedById
+            ApexClass.LastModifiedById,
+            ApexClass.LastModifiedBy.Name
         };
+    }
+
+    private static final string DEFAULT_WHERE_CLAUSE;
+    private static final string DEFAULT_WHERE_CLAUSE_AS_ADDITION;
+
+    static
+    {
+        Organization currentOrganzationRecord = [select Id, Name, NamespacePrefix, InstanceName, IsSandbox from Organization limit 1];
+
+        DEFAULT_WHERE_CLAUSE = ' ' + ApexClass.NamespacePrefix + ' = \'' + currentOrganzationRecord.NamespacePrefix + '\'';
+        DEFAULT_WHERE_CLAUSE_AS_ADDITION = ' and' + DEFAULT_WHERE_CLAUSE;
     }
 
     public Schema.SObjectType getSObjectType()
@@ -42,12 +53,15 @@ public class ApexClassesSelector
     public list<ApexClass> selectById(set<ID> idSet)
     {
         assertIsAccessible();
-        return (list<ApexClass>) Database.query(String.format('SELECT {0}, {3} FROM {1} WHERE id in :idSet ORDER BY {2}'
+        return (list<ApexClass>) Database.query(String.format('select {0}' +
+								                               ' from {1}' +
+								                              ' where id in :idSet' +
+								                                     DEFAULT_WHERE_CLAUSE_AS_ADDITION +
+								                              ' order by {2}'
                                                             , new List<String>{
                                                                     getFieldListString(),
                                                                     getSObjectName(),
-                                                                    getOrderBy(),
-                                                                    ADDITIONAL_FIELDS
+                                                                    getOrderBy()
                                                                 }));
 
     }
@@ -55,25 +69,28 @@ public class ApexClassesSelector
     public list<ApexClass> selectByName(set<String> nameSet)
     {
         assertIsAccessible();
-        return (list<ApexClass>) Database.query(String.format('SELECT {0}, {3} FROM {1} WHERE name in :nameSet ORDER BY {2}'
+        return (list<ApexClass>) Database.query(String.format('select {0}' +
+                                                               ' from {1}' +
+                                                              ' where name in :nameSet' +
+                                                                    DEFAULT_WHERE_CLAUSE_AS_ADDITION +
+                                                              ' order by {2}'
                                                              , new List<String>{
                                                                     getFieldListString(),
                                                                     getSObjectName(),
-                                                                    getOrderBy(),
-                                                                    ADDITIONAL_FIELDS
+                                                                    getOrderBy()
                                                                     }));
     }
 
     public string selectAllQuery()
     {
-    	return string.format('select {0}, {3}' +
-                         ' from {1}' +
-                        ' order by {2}',
+    	return string.format('select {0}' +
+                              ' from {1}' +
+                             ' where ' + DEFAULT_WHERE_CLAUSE +
+                             ' order by {2}',
                         new list<string>{
                             getFieldListString(),
                             getSObjectName(),
-                            getOrderBy(),
-                            ADDITIONAL_FIELDS
+                            getOrderBy()
                         });
       }
 
