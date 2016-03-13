@@ -43,6 +43,8 @@ public class ApexClassesSelector
 
         DEFAULT_WHERE_CLAUSE = ' ' + ApexClass.NamespacePrefix + ' = \'' + currentOrganzationRecord.NamespacePrefix + '\'';
         DEFAULT_WHERE_CLAUSE_AS_ADDITION = ' and' + DEFAULT_WHERE_CLAUSE;
+        system.debug(DEFAULT_WHERE_CLAUSE);
+        system.debug(DEFAULT_WHERE_CLAUSE_AS_ADDITION);
     }
 
     public Schema.SObjectType getSObjectType()
@@ -53,16 +55,18 @@ public class ApexClassesSelector
     public list<ApexClass> selectById(set<ID> idSet)
     {
         assertIsAccessible();
-        return (list<ApexClass>) Database.query(String.format('select {0}' +
-								                               ' from {1}' +
-								                              ' where id in :idSet' +
-								                                     DEFAULT_WHERE_CLAUSE_AS_ADDITION +
-								                              ' order by {2}'
+        string query = String.format('select {0}' +
+                                                               ' from {1}' +
+                                                              ' where id in :idSet {3}' +
+                                                              ' order by {2}'
                                                             , new List<String>{
                                                                     getFieldListString(),
                                                                     getSObjectName(),
-                                                                    getOrderBy()
-                                                                }));
+                                                                    getOrderBy(),
+                                                                    DEFAULT_WHERE_CLAUSE_AS_ADDITION
+                                                                });
+        system.debug('\n\n\n'+query+'\n\n\n');
+        return (list<ApexClass>) Database.query(query);
 
     }
 
@@ -71,13 +75,13 @@ public class ApexClassesSelector
         assertIsAccessible();
         return (list<ApexClass>) Database.query(String.format('select {0}' +
                                                                ' from {1}' +
-                                                              ' where name in :nameSet' +
-                                                                    DEFAULT_WHERE_CLAUSE_AS_ADDITION +
+                                                              ' where name in :nameSet {3}' +
                                                               ' order by {2}'
                                                              , new List<String>{
                                                                     getFieldListString(),
                                                                     getSObjectName(),
-                                                                    getOrderBy()
+                                                                    getOrderBy(),
+                                                                    DEFAULT_WHERE_CLAUSE_AS_ADDITION
                                                                     }));
     }
 
@@ -85,12 +89,13 @@ public class ApexClassesSelector
     {
     	return string.format('select {0}' +
                               ' from {1}' +
-                             ' where ' + DEFAULT_WHERE_CLAUSE +
+                             ' where {3}' +
                              ' order by {2}',
                         new list<string>{
                             getFieldListString(),
                             getSObjectName(),
-                            getOrderBy()
+                            getOrderBy(),
+                            DEFAULT_WHERE_CLAUSE
                         });
       }
 
