@@ -2,18 +2,21 @@ public class CodeDocumenter
 	implements Queueable
 	//Database.Batchable<SObject>
 {
-    public static list<string> rgstrAccessModifier { get; set; }
+    private static list<string> allAccessModifiersList { get; set; }
 
     static
     {
-        rgstrAccessModifier = new list<string>();
+        allAccessModifiersList = new list<string>();
 
         // These next four strings are added to the list in this manner to ensure that
         // they are not accidently picked up as "methods" because they have the "access modifier" words
-        rgstrAccessModifier.add('glo'+'bal');
-        rgstrAccessModifier.add('pub'+'lic');
-        rgstrAccessModifier.add('prot'+'ected');
-        rgstrAccessModifier.add('webse'+'rvice');
+        allAccessModifiersList.add('glo'+'bal');
+        allAccessModifiersList.add('pub'+'lic');
+        allAccessModifiersList.add('prot'+'ected');
+        allAccessModifiersList.add('webse'+'rvice');
+        allAccessModifiersList.add('@ist'+'est');
+
+        // allAccessModifiersList.add('pri'+'vate');
     }
 
     private list<ApexClass> classListForProcessing = new list<ApexClass>();
@@ -567,13 +570,14 @@ public class CodeDocumenter
                 system.debug(getLoggingLevel(), '\n\n@@@ strLine = '+strLine+'\n'
                             +'fileParsed == '+fileParsed+'\n'
                             +'fileModel instanceOf IInnerClasses == '+(fileModel instanceOf IInnerClasses)+'\n'
-                            +'strContainsAccessModifier(strLine) == '+strContainsAccessModifier(strLine)+'\n'
+                            +'isStringContainingAnAccessModifier(strLine) == '+isStringContainingAnAccessModifier(strLine)+'\n'
                             +'fileModel instanceOf InterfaceModel == '+(fileModel instanceOf InterfaceModel)+'\n'
                             +'isParsingNestedClass == '+isParsingNestedClass+'\n'
-                            +'isCurrentlyInNestedClassConstruct == '+isCurrentlyInNestedClassConstruct+'\n\n');
+                            +'isCurrentlyInNestedClassConstruct == '+isCurrentlyInNestedClassConstruct+'\n'
+                            +'\n\n');
 
                 // if they put the access modifier value on one line and the clazz declaration on the next line, pick it up here.
-                if ( strContainsAccessModifier(strLine)
+                if ( isStringContainingAnAccessModifier(strLine)
                     && string.isblank(strLine.remove(retrieveAccessModifierFromString(strLine)).trim())
                     )
                 {
@@ -596,8 +600,8 @@ public class CodeDocumenter
                     // the "if" statement catches it and bypasses the next if block to proceed on through.
                     isParsingAPrivateNestedClass = true;
                 }
-                // ignore lines not dealing with access modifier
-                else if ( ! strContainsAccessModifier(strLine)
+                // ignore lines not dealing with access modifiers currently allowed to be processed
+                else if ( ! isStringContainingAnAccessModifier(strLine)
                         && ! (fileModel instanceOf InterfaceModel)
                         )
                 {
@@ -1188,7 +1192,7 @@ public class CodeDocumenter
     {
         string accessModifierFound = null;
 
-        for (string aAccessModifier : rgstrAccessModifier )
+        for (string aAccessModifier : allAccessModifiersList )
         {
             // does the string (str) contain aAccessModifier plus the single space?
             //      Including the space eliminates words like "getGlobalDescribe"
@@ -1209,7 +1213,7 @@ public class CodeDocumenter
         return accessModifierFound;
     }
 
-    private boolean strContainsAccessModifier(final string str)
+    private boolean isStringContainingAnAccessModifier(final string str)
     {
         return ! String.isBlank(retrieveAccessModifierFromString(str));
     }
