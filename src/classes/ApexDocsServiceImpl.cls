@@ -59,14 +59,10 @@ public with sharing class ApexDocsServiceImpl
                 modelToCheck = model;
             }
 
-            // This is the original piece of code.  This is when the class/interface in an outerclass
-            //if (apexClassToCheck.lastmodifieddate == ((IApexFileInfo)model).getApexFileLastModifiedDate())
             if (apexClassToCheck.lastmodifieddate == ((IApexFileInfo)modelToCheck).getApexFileLastModifiedDate())
             {
                 model.setIsModelCurrent(true);
             }
-
-
         }
 
         if (model instanceOf IImplementable)
