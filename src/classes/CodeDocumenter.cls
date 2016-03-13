@@ -781,12 +781,13 @@ public class CodeDocumenter
                     continue;
                 }
 
-                system.debug(getLoggingLevel(), 'did not find a class structure.  now looking for a method or property');
-                system.debug(getLoggingLevel(), 'strLine == '+strLine);
-                system.debug(getLoggingLevel(), 'strLine.containsIgnoreCase(\'(\') == '+strLine.containsIgnoreCase('('));
-                system.debug(getLoggingLevel(), 'isParsingNestedClass == '+isParsingNestedClass);
-                system.debug(getLoggingLevel(), 'fileNameWithoutEnclosingClassName == '+fileNameWithoutEnclosingClassName);
-                system.debug(getLoggingLevel(), 'strLine.replace(\' \',\'\').containsIgnoreCase(fileNameWithoutEnclosingClassName+\'(\') == ' + strLine.replace(' ','').containsIgnoreCase(fileNameWithoutEnclosingClassName+'('));
+                system.debug(getLoggingLevel(), '\n\n\ndid not find a class structure.  now looking for a method or property\n'
+                                                + 'strLine == '+strLine + '\n'
+                                                + 'strLine.containsIgnoreCase(\'(\') == '+strLine.containsIgnoreCase('(') + '\n'
+                                                + 'isParsingNestedClass == '+isParsingNestedClass + '\n'
+                                                + 'fileNameWithoutEnclosingClassName == '+fileNameWithoutEnclosingClassName + '\n'
+                                                + 'strLine.replace(\' \',\'\').containsIgnoreCase(fileNameWithoutEnclosingClassName+\'(\') == ' + strLine.replace(' ','').containsIgnoreCase(fileNameWithoutEnclosingClassName+'(') + '\n\n\n'
+                        );
 
                 // look for a method
                 if (fileModel instanceOf IMethods
