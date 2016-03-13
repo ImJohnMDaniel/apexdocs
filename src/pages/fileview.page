@@ -71,10 +71,10 @@
                         </li>
                         <li>
                             <apex:outputPanel layout="none" rendered="{! propertiesable != null && propertiesable.properties.size > 0 }">
-                            <a href="#variable_summary">Variable</a>
+                            <a href="#properties_summary">Property</a>
                             </apex:outputPanel>
                             <apex:outputPanel layout="none" rendered="{! propertiesable == null || propertiesable.properties.size == 0 }">
-                            Variable
+                            Property
                             </apex:outputPanel>
                             &nbsp;|&nbsp;
                         </li>
@@ -103,10 +103,10 @@
                         <li>Detail:&nbsp;</li>
                         <li>
                             <apex:outputPanel layout="none" rendered="{! propertiesable != null && propertiesable.properties.size > 0 }">
-                            <a href="#fields_inherited_from_class">Variable</a>
+                            <a href="#properties_detail">Property</a>
                             </apex:outputPanel>
                             <apex:outputPanel layout="none" rendered="{! propertiesable == null || propertiesable.properties.size == 0 }">
-                            Variable
+                            Property
                             </apex:outputPanel>
                             &nbsp;|&nbsp;
                         </li>
@@ -280,14 +280,14 @@
                     <!-- =========== VARIABLE SUMMARY =========== -->
                     <ul class="unstyled">
                         <li>
-                            <a name="variable_summary"><!--   --></a>
-                            <h3>Variable Summary</h3>
+                            <a name="properties_summary"><!--   --></a>
+                            <h3>Property Summary</h3>
                             <table class="table table-striped">
-                                <caption><span>Class Variables</span><span class="tabEnd">&nbsp;</span></caption>
+                                <caption><span>Class Properties</span><span class="tabEnd">&nbsp;</span></caption>
                                 <tbody>
                                     <tr>
                                         <th class="colFirst" scope="col">Modifier and Type</th>
-                                        <th class="colLast" scope="col">Class Variables and Description</th>
+                                        <th class="colLast" scope="col">Class Properties and Description</th>
                                     </tr>
                                     <apex:repeat value="{! propertiesable.properties }" var="property">
                                     <apex:variable var="secondSpacePosition" value="{! find(' ', property.NameLine, find(' ', property.NameLine) + 1 ) }" />
