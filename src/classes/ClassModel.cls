@@ -9,7 +9,7 @@
 public class ClassModel extends ApexConstructBaseModel
     implements IApexModel, IFile, IMethods, IProperties,
         IConstructors, IAuthorable, IInnerClasses, IExtensible,
-        IImplementable, IApexFileInfo
+        IImplementable, IApexFileInfo, IIsTest
 {
 	private id apexFileId;
     private id codeInfoId;
@@ -22,6 +22,7 @@ public class ClassModel extends ApexConstructBaseModel
     private id apexFileCreatedById;
     private DateTime apexFileCreatedDate;
     private boolean isModelCurrent = false;
+    private boolean isTest = false;
 
     private ClassLinkModel extendsClass = null;
     private list<MethodModel> methods = new list<MethodModel>();
@@ -31,6 +32,11 @@ public class ClassModel extends ApexConstructBaseModel
     private list<string> authors = new list<string>();
     private list<ClassLinkModel> interfacesImplemented = new list<ClassLinkModel>();
 
+
+    public void declareThisAUnitTestClass()
+    {
+        this.isTest = true;
+    }
 
     /**
      *  @return the Createddate of the associated ApexClass CreatedDate field
@@ -150,6 +156,11 @@ public class ClassModel extends ApexConstructBaseModel
     public boolean getIsModelCurrent()
     {
         return this.isModelCurrent;
+    }
+
+    public boolean getIsTest()
+    {
+        return this.isTest;
     }
 
     public list<MethodModel> getMethods()

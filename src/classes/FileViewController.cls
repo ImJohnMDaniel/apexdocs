@@ -51,6 +51,14 @@ public with sharing class FileViewController
         }
     }
 
+    public IIsTest isTestable
+    {
+        get
+        {
+            return model instanceOf IIsTest ? (IIsTest)model : null;
+        }
+    }
+
     public IMethods methodsable
     {
         get

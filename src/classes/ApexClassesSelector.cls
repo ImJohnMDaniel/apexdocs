@@ -12,6 +12,8 @@ public class ApexClassesSelector
         return (IApexClassesSelector) Application.Selector.newInstance(ApexClass.SObjectType);
     }
 
+    private static final string ADDITIONAL_FIELDS = 'LastModifiedBy.Name, CreatedBy.Name';
+
     public list<Schema.SObjectField> getSObjectFieldList()
     {
         return new list<Schema.SObjectField>
@@ -27,10 +29,8 @@ public class ApexClassesSelector
             ApexClass.LengthWithoutComments,
             ApexClass.CreatedDate,
             ApexClass.CreatedById,
-            ApexClass.CreatedBy.Name,
             ApexClass.LastModifiedDate,
-            ApexClass.LastModifiedById,
-            ApexClass.LastModifiedBy.Name
+            ApexClass.LastModifiedById
         };
     }
 
@@ -53,25 +53,24 @@ public class ApexClassesSelector
     public list<ApexClass> selectById(set<ID> idSet)
     {
         assertIsAccessible();
-        string query = String.format('select {0}' +
-                                                               ' from {1}' +
-                                                              ' where id in :idSet {3}' +
-                                                              ' order by {2}'
-                                                            , new List<String>{
-                                                                    getFieldListString(),
-                                                                    getSObjectName(),
-                                                                    getOrderBy(),
-                                                                    DEFAULT_WHERE_CLAUSE_AS_ADDITION
-                                                                });
-        system.debug('\n\n\n'+query+'\n\n\n');
-        return (list<ApexClass>) Database.query(query);
+        return (list<ApexClass>) Database.query(String.format('select {0}, {4}' +
+ 						                                      ' from {1}' +
+ 						                                     ' where id in :idSet {3}' +
+ 						                                     ' order by {2}'
+ 						                                    , new List<String>{
+ 						                                            getFieldListString(),
+						                                            getSObjectName(),
+						                                            getOrderBy(),
+						                                            DEFAULT_WHERE_CLAUSE_AS_ADDITION,
+						                                            ADDITIONAL_FIELDS
+						                                        }));
 
     }
 
     public list<ApexClass> selectByName(set<String> nameSet)
     {
         assertIsAccessible();
-        return (list<ApexClass>) Database.query(String.format('select {0}' +
+        return (list<ApexClass>) Database.query(String.format('select {0}, {4}' +
                                                                ' from {1}' +
                                                               ' where name in :nameSet {3}' +
                                                               ' order by {2}'
@@ -79,13 +78,14 @@ public class ApexClassesSelector
                                                                     getFieldListString(),
                                                                     getSObjectName(),
                                                                     getOrderBy(),
-                                                                    DEFAULT_WHERE_CLAUSE_AS_ADDITION
+                                                                    DEFAULT_WHERE_CLAUSE_AS_ADDITION,
+                                                                    ADDITIONAL_FIELDS
                                                                     }));
     }
 
     public string selectAllQuery()
     {
-    	return string.format('select {0}' +
+    	return string.format('select {0}, {4}' +
                               ' from {1}' +
                              ' where {3}' +
                              ' order by {2}',
@@ -93,7 +93,8 @@ public class ApexClassesSelector
                             getFieldListString(),
                             getSObjectName(),
                             getOrderBy(),
-                            DEFAULT_WHERE_CLAUSE
+                            DEFAULT_WHERE_CLAUSE,
+                            ADDITIONAL_FIELDS
                         });
       }
 

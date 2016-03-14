@@ -133,6 +133,7 @@
                 <div class="codeInfoDisplay">
                     <h3>
                         <apex:outputText value="Interface" rendered="{! fileable != null && fileable.isInterface }" />
+                        <apex:outputText value="Unit Test " rendered="{! isTestable != null && isTestable.isTest }" />
                         <apex:outputText value="Class" rendered="{! fileable != null && not(fileable.isInterface) }" />
                          {! apexModelable.name }
                     </h3>

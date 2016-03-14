@@ -43,6 +43,7 @@
         <members>IFile</members>
         <members>IImplementable</members>
         <members>IInnerClasses</members>
+        <members>IIsTest</members>
         <members>IMethods</members>
         <members>IOuterClassible</members>
         <members>IParams</members>

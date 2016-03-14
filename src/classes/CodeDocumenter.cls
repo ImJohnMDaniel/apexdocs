@@ -347,7 +347,7 @@ public class CodeDocumenter
 
     private LoggingLevel getLoggingLevel()
     {
-        return logginglevel.info;
+        return logginglevel.fine;
     }
 
     private IFile parseApexClass(ApexClass file, final boolean isNestedClass)
@@ -362,6 +362,7 @@ public class CodeDocumenter
             boolean internalCommentsStarted = false;
 
             boolean isParsingNestedClass = false;
+            boolean isTestClass = false;
             boolean isParsingAPrivateNestedClass = false;
             boolean isNestClassStrLineContainingCodeBlockDelimeter = false;
             // when in a method, property, or constructor, this will keep track of how many nested "code blocks" we are currently at.
@@ -572,13 +573,14 @@ public class CodeDocumenter
                             +'fileModel instanceOf IInnerClasses == '+(fileModel instanceOf IInnerClasses)+'\n'
                             +'isStringContainingAnAccessModifier(strLine) == '+isStringContainingAnAccessModifier(strLine)+'\n'
                             +'fileModel instanceOf InterfaceModel == '+(fileModel instanceOf InterfaceModel)+'\n'
+                            +'isTestClass == '+isTestClass+'\n'
                             +'isParsingNestedClass == '+isParsingNestedClass+'\n'
                             +'isCurrentlyInNestedClassConstruct == '+isCurrentlyInNestedClassConstruct+'\n'
                             +'\n\n');
 
                 // if they put the access modifier value on one line and the clazz declaration on the next line, pick it up here.
                 if ( isStringContainingAnAccessModifier(strLine)
-                    && string.isblank(strLine.remove(retrieveAccessModifierFromString(strLine)).trim())
+                    && string.isblank(strLine.toLowerCase().remove(retrieveAccessModifierFromString(strLine)).trim())
                     )
                 {
                     // Basically, we found a line with a access modifier variable and no other string.  This means that the rest of the nameLine is on the next line.
@@ -603,10 +605,20 @@ public class CodeDocumenter
                 // ignore lines not dealing with access modifiers currently allowed to be processed
                 else if ( ! isStringContainingAnAccessModifier(strLine)
                         && ! (fileModel instanceOf InterfaceModel)
+                        && ! ( ! fileParsed && isTestClass )  // this condition deals with the potential of find a test class which would be private and should not be ignored
                         )
                 {
                     system.debug(getLoggingLevel(), 'ignore lines not dealing with access modifier');
                     continue;
+                }
+
+                // look for a test class; private or otherwise.
+                if ( ! fileParsed
+                     && strLine.containsIgnoreCase('@isTest')
+                    )
+                {
+                    isTestClass = true;
+                    system.debug(getLoggingLevel(), 'setting isTestClass = true');
                 }
 
                 // look for a class
@@ -632,6 +644,14 @@ public class CodeDocumenter
                     fillModel((IApexModel)fileModel, fullNameLine, lstComments);
 
                     fileModel.setApexFileId(file.id);
+
+                    // Check to see if the class is a test class
+                    if (isTestClass
+                        && fileModel instanceOf IIsTest)
+                    {
+                        ((IIsTest)fileModel).declareThisAUnitTestClass();
+system.debug(logginglevel.error, fileModel);
+                    }
 
                     // Check to see if the class extends another class
                     if (fullNameLine.containsIgnoreCase(EXTENDS_KEYWORD_STRING.trim())
