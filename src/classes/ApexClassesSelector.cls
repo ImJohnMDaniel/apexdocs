@@ -43,8 +43,6 @@ public class ApexClassesSelector
 
         DEFAULT_WHERE_CLAUSE = ' ' + ApexClass.NamespacePrefix + ' = \'' + currentOrganzationRecord.NamespacePrefix + '\'';
         DEFAULT_WHERE_CLAUSE_AS_ADDITION = ' and' + DEFAULT_WHERE_CLAUSE;
-        system.debug(DEFAULT_WHERE_CLAUSE);
-        system.debug(DEFAULT_WHERE_CLAUSE_AS_ADDITION);
     }
 
     public Schema.SObjectType getSObjectType()
