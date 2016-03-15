@@ -250,7 +250,7 @@ public with sharing class FileViewController
 
         nextPage.getParameters().put(PARAM_NAME, ((IFile)model).getName() );
         nextPage.getParameters().put(PARAM_CODE_INFO_REFRESH, 'true' );
-        nextPage.setRedirect(true);
+//        nextPage.setRedirect(true);
 
         return nextPage;
     }
@@ -262,7 +262,7 @@ public with sharing class FileViewController
         PageReference nextPage = ApexPages.currentPage();
 
         nextPage.getParameters().put(PARAM_CODE_INFO_REFRESH, 'true' );
-        nextPage.setRedirect(true);
+//        nextPage.setRedirect(true);
 
         return nextPage;
     }
