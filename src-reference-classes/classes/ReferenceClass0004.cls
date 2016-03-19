@@ -14,4 +14,6 @@ public class ReferenceClass0004 {
             return null;
         }
     }
+
+    public class QueryField3{ public void doSomething(){ } }
 }
