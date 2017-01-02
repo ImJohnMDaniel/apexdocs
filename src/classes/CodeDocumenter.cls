@@ -1,7 +1,9 @@
 public class CodeDocumenter
-	implements Queueable
-	//Database.Batchable<SObject>
+	implements Queueable, Database.Batchable<CodeDocumentScopeChunk>
 {
+    private static Integer MAX_CODE_LINES_PER_EXECUTION_THREAD = 25000;
+    private static Integer MAX_CODE_LINES_FOR_PRIMARY_EXECUTION_THREAD = 10000;
+
     private static list<string> allAccessModifiersList { get; set; }
 
     static
@@ -20,7 +22,7 @@ public class CodeDocumenter
     }
 
     private list<ApexClass> classListForProcessing = new list<ApexClass>();
-    private boolean isQueueableMode = false;
+    private boolean isRunningInSeparateThread = false;
 
     // SObject's used by the logic in this service, listed in dependency order
     private static list<Schema.SObjectType> SERVICE_SOBJECTS =
@@ -77,26 +79,42 @@ public class CodeDocumenter
         return nameLine;
     }
 
+    /*
+     *  This is the main execute method.  It processes whatever classes are present in the
+     *  class variable list "classListForProcessing"
+     */
     private list<IFile> execute()
     {
         list<IFile> models = new list<IFile>();
 
-        list<ApexClass> classesToProcessInQueueableMode = new list<ApexClass>();
+        list<ApexClass> classesToProcessInSeparateThread = new list<ApexClass>();
+
+        // cumlative count of the number of apex code lines processed thus far in this thread.
+        Integer totalNumberOfLinesParsedSoFar = 0;
 
         for (ApexClass clazz : classListForProcessing)
         {
-            // if the execution context is not currently in QueueableMode
-            if ( ! this.isQueueableMode
-                // send this to Queuable if its size is greater than the threshold.
-                && clazz.LengthWithoutComments > 25000
+            // if the execution context is currently in the originating thread.
+            if ( ! this.isRunningInSeparateThread
                 // but only if we are processing more than one class.
-                && classListForProcessing.size() > 1)
+                && classListForProcessing.size() > 1
+// TODO: Move the following thresholds out to config custom setting
+                // send this to another thread if its size is greater than the threshold.
+                && ( clazz.LengthWithoutComments > MAX_CODE_LINES_PER_EXECUTION_THREAD
+                    // if there is only 15% of less of the CPU time left, go to batch
+                    || ( System.Limits.getCpuTime() / System.Limits.getLimitCpuTime() > 0.85 )
+                    // if the cumlative count of the number of apex code lines processed thus far in this thread is greater than MAX_CODE_LINES_FOR_PRIMARY_EXECUTION_THREAD.
+                    || totalNumberOfLinesParsedSoFar > MAX_CODE_LINES_FOR_PRIMARY_EXECUTION_THREAD
+                    )
+                )
             {
-                classesToProcessInQueueableMode.add(clazz);
+                classesToProcessInSeparateThread.add(clazz);
                 models.add(new FileModel(null, clazz.name, FileModel.class, clazz.id));
             }
             else
             {
+                totalNumberOfLinesParsedSoFar += clazz.LengthWithoutComments;
+
                 // otherwise process the class in the current context.
                 models.add(parseApexClass(clazz, false));
 
@@ -124,9 +142,10 @@ public class CodeDocumenter
 
         resolveTheClassLinks();
 
-        if ( ! classesToProcessInQueueableMode.isEmpty() )
+        if ( ! classesToProcessInSeparateThread.isEmpty() )
         {
-            documentApexFilesInQueueableMode( classesToProcessInQueueableMode );
+            //documentApexFilesInQueueableMode( classesToProcessInSeparateThread );
+            documentApexFilesInBatchMode( classesToProcessInSeparateThread );
         }
 
         return models;
@@ -1243,10 +1262,19 @@ system.debug(logginglevel.error, fileModel);
 
     }
 
-    private CodeDocumenter(final list<ApexClass> classList, final boolean isQueueableMode)
+    private CodeDocumenter(final list<ApexClass> classList, final boolean isRunningInSeparateThread)
     {
         this.classListForProcessing.addAll(classList);
-        this.isQueueableMode = isQueueableMode;
+        this.isRunningInSeparateThread = isRunningInSeparateThread;
+    }
+
+    private CodeDocumenter( list<CodeDocumentScopeChunk> chunksToDocument, final boolean isRunningInSeparateThread)
+    {
+        system.debug( chunksToDocument.size() );
+        system.debug( chunksToDocument );
+
+        this.chunksToDocument = chunksToDocument;
+        this.isRunningInSeparateThread = isRunningInSeparateThread;
     }
 
     public static IFile documentApexFile(final ApexClass file)
@@ -1273,7 +1301,7 @@ system.debug(logginglevel.error, fileModel);
         return ( new CodeDocumenter( apexClasses, false ) ).execute();
     }
 
-    public static id documentApexFilesInQueueableMode(final list<ApexClass> apexClasses)
+    private static id documentApexFilesInQueueableMode(final list<ApexClass> apexClasses)
     {
         // Collect the class names and delete any JSON representations of the classes' Object Model.  This will ensure that
         // the current thread does not use the old version while the new version is being created in the Queue.
@@ -1286,8 +1314,57 @@ system.debug(logginglevel.error, fileModel);
 
         delete AttachmentsSelector.newInstance().selectByApexClassNameParent(clazzNameSet);
 
-        // now go a start to create new JSON representations of the classes' Object Model
+        // now go and start to create new JSON representations of the classes' Object Model
         return System.enqueueJob(new CodeDocumenter( apexClasses, true ));
+    }
+
+    private static void documentApexFilesInBatchMode( List<ApexClass> apexClasses )
+    {
+        list<CodeDocumentScopeChunk> chunksToDocument = new list<CodeDocumentScopeChunk>();
+
+        CodeDocumentScopeChunk currentChunk = new CodeDocumentScopeChunk();
+
+        // Collect the class names and delete any JSON representations of the classes' Object Model.  This will ensure that
+        // the current thread does not use the old version while the new version is being created in the Queue.
+        set<string> clazzNameSet = new set<string>();
+
+        for (ApexClass clazz : apexClasses)
+        {
+            clazzNameSet.add(clazz.name);
+
+            // if the class LengthWithoutComments > MAX_CODE_LINES_PER_EXECUTION_THREAD, then dedicate a chunk only to that one
+            if ( clazz.LengthWithoutComments > MAX_CODE_LINES_PER_EXECUTION_THREAD )
+            {
+                // create a new chunk
+                CodeDocumentScopeChunk dedicatedChunk = new CodeDocumentScopeChunk();
+                // add this class to the scope
+                dedicatedChunk.addToScope( new CodeUnitToDocument( clazz ) );
+                // add this dedicated chunk to the list
+                chunksToDocument.add( dedicatedChunk );
+            }
+            else
+            {
+                // if the currentChunk is nearing capacity, add it to the list and create a new chunk
+                if ( ( currentChunk.getTotalNumberOfCodeLinesToDocument() + clazz.LengthWithoutComments ) > MAX_CODE_LINES_PER_EXECUTION_THREAD )
+                {
+                    chunksToDocument.add( currentChunk );
+
+                    currentChunk = new CodeDocumentScopeChunk();
+                }
+
+                currentChunk.addToScope( new CodeUnitToDocument( clazz ) );
+            }
+        }
+
+        chunksToDocument.add( currentChunk );
+
+
+        delete AttachmentsSelector.newInstance().selectByApexClassNameParent(clazzNameSet);
+
+        // now go and start to create new JSON representations of the classes' Object Model
+        //Database.executeBatch(new CodeDocumenter(apexClasses, false), 1);
+
+        Database.executeBatch(new CodeDocumenter( chunksToDocument, true ), 1);
     }
 
     public void execute(QueueableContext context)
@@ -1295,36 +1372,33 @@ system.debug(logginglevel.error, fileModel);
         execute();
     }
 
-//    global Database.QueryLocator start(Database.BatchableContext BC)
-//    {
-//        classIdSetForBatchProcessing
-//
-//        return Database.getQueryLocator( ApexClassesSelector.newInstance().selectAllQuery() );
-//    }
-//
-//    global void execute(Database.BatchableContext BC, List<sObject> scope)
-//    {
-//        list<IFile> models = new list<IFile>();
-//
-//        for (ApexClass file : (list<ApexClass>)scope)
-//        {
-//            models.add(parseApexClass(file));
-//        }
-//        system.debug(getLoggingLevel(), 'models.size = '+models.size());
-//
-//        persistFileModels(models);
-//    }
-//
-//    global void finish(Database.BatchableContext BC)
-//    {
-//        resolveTheClassLinks();
-//    }
-//
-//    public static void documentApexFilesInBatchMode(final set<id> apexClassIds)
-//    {
-//        Database.executeBatch(new CodeDocumenter(apexClassIds), 20);
-//    }
-//
+    private list<CodeDocumentScopeChunk> chunksToDocument = new list<CodeDocumentScopeChunk>();
+
+    public Iterable<CodeDocumentScopeChunk> start(Database.BatchableContext BC)
+    {
+        return this.chunksToDocument;
+    }
+
+    public void execute(Database.BatchableContext BC, List<CodeDocumentScopeChunk> scope)
+    {
+        list<ApexClass> apexClasses = new list<ApexClass>();
+
+        for ( CodeDocumentScopeChunk chunk : scope )
+        {
+            for ( CodeUnitToDocument codeUnit : chunk.getCodeUnitsToDocumentList() )
+            {
+                apexClasses.add( codeUnit.getApexClass() );
+            }
+        }
+
+        ( new CodeDocumenter( apexClasses, true ) ).execute();
+    }
+
+    public void finish(Database.BatchableContext BC)
+    {
+        resolveTheClassLinks();
+    }
+
     /**
      *  @description This is the standard exception that will be thrown by the
      *      CodeDoumenter class
@@ -1332,5 +1406,109 @@ system.debug(logginglevel.error, fileModel);
      */
     public class CodeDoumenterException extends Exception {}
 
+    public class CodeUnitToDocument
+    {
+        private ApexClass clazz = null;
+        private integer startLine = null;
+        private integer endLine = null;
+        private integer totalLinesToDocument = 0;
 
+        private CodeUnitToDocument() { }
+
+        public CodeUnitToDocument( ApexClass clazz )
+        {
+            this.clazz = clazz;
+        }
+
+        public ApexClass getApexClass()
+        {
+            return this.clazz;
+        }
+
+        public id getApexClassId()
+        {
+            return this.clazz.id;
+        }
+
+        public boolean isDocumentingWholeClass()
+        {
+            return this.startLine == null
+                && this.endLine == null;
+        }
+
+        public boolean isDocumentingRemainderOfClass()
+        {
+            return this.startLine != null
+                && this.endLine == null;
+        }
+
+        public integer getStartLine()
+        {
+            return this.startLine;
+        }
+
+        public integer getEndLine()
+        {
+            return this.endLine;
+        }
+
+        public integer getTotalLinesToDocument()
+        {
+            return this.totalLinesToDocument;
+        }
+
+        public CodeUnitToDocument setStartLine(integer startLine)
+        {
+            this.startLine = startLine;
+
+            return this;
+        }
+
+        public CodeUnitToDocument setEndLine(integer endLine)
+        {
+            this.endLine = endLine;
+
+            return this;
+        }
+
+        public CodeUnitToDocument setTotalLinesToDocument(integer lineCount)
+        {
+            this.totalLinesToDocument = lineCount;
+
+            return this;
+        }
+    }
+
+    public class CodeDocumentScopeChunk
+        implements Iterable<Object>
+    {
+        private list<CodeUnitToDocument> codeUnitsToDocumentList = new list<CodeUnitToDocument>();
+        private integer totalNumberOfCodeLinesToDocument = 0;
+
+        public CodeDocumentScopeChunk() { }
+
+        public CodeDocumentScopeChunk addToScope( CodeUnitToDocument codeUnit )
+        {
+            this.codeUnitsToDocumentList.add( codeUnit );
+
+            this.totalNumberOfCodeLinesToDocument += codeUnit.getTotalLinesToDocument();
+
+            return this;
+        }
+
+        public list<CodeUnitToDocument> getCodeUnitsToDocumentList()
+        {
+            return this.codeUnitsToDocumentList;
+        }
+
+        public Iterator<Object> iterator()
+        {
+            return (Iterator<Object>) this.codeUnitsToDocumentList;
+        }
+
+        public integer getTotalNumberOfCodeLinesToDocument()
+        {
+            return this.totalNumberOfCodeLinesToDocument;
+        }
+    }
 }

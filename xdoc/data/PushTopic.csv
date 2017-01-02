@@ -1,0 +1,2 @@
+"Name","Query","ApiVersion","IsActive","NotifyForFields","NotifyForOperations","Description","NotifyForOperationCreate","NotifyForOperationUpdate","NotifyForOperationDelete","NotifyForOperationUndelete"
+"CodeInfoUpdates","select Id, OwnerId, IsDeleted, Name, CurrencyIsoCode, CreatedDate, CreatedById, LastModifiedDate, LastModifiedById, SystemModstamp, ap3xdocs__ApexClassId__c, ap3xdocs__Filename__c, ap3xdocs__ModelType__c from ap3xdocs__CodeInfo__c","36.0","true","All","All","","true","true","true","true"

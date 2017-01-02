@@ -1,0 +1,12 @@
+select Name
+, Query
+, ApiVersion
+, IsActive
+, NotifyForFields
+, NotifyForOperations
+, Description
+, NotifyForOperationCreate
+, NotifyForOperationUpdate
+, NotifyForOperationDelete
+, NotifyForOperationUndelete
+ from PushTopic

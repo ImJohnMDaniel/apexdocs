@@ -1,5 +1,14 @@
 <apex:page standardController="CodeInfo__c" extensions="FileViewController"
         showHeader="false" sidebar="false" standardStylesheets="false" docType="html-5.0">
+
+    <apex:stylesheet value="{!urlfor($Resource.apexdocs, 'css/apexdocs-bootstrap.css')}"/>
+
+    <apex:includeScript value="{!urlfor($Resource.apexdocsjquery, 'js/jquery.js')}"/>
+    <apex:includeScript value="{!urlfor($Resource.apexdocsbootstrap, 'js/bootstrap.js')}"/>
+    <apex:includeScript value="{!$Resource.cometd}"/>
+    <apex:includeScript value="{!$Resource.json2}"/>
+    <apex:includeScript value="{!$Resource.jquery_cometd}"/>
+
     <head>
         <meta charset="utf-8" />
         <apex:outputPanel layout="none" rendered="{! isFileViewable }">
@@ -13,24 +22,140 @@
                 list-style: none;
             }
         </style>
+
+        <script type="text/javascript">
+            jQuery.noConflict();
+
+           var processClassEvent = function( messageData ) {
+
+                console.log( JSON.stringify( messageData ) );
+
+                var classToProcess = messageData.sobject;
+                var eventToProcess = messageData.event;
+
+                var classId = classToProcess.Id;
+                var className = classToProcess.ap3xdocs__FileName__c;
+
+                console.log( classId + ": " + className );
+                console.log( "event: " + eventToProcess );
+
+                if ( eventToProcess.type == "created") {
+                    var appendClassToAddAtEndOfList = true;
+
+                    jQuery(".spanAllClassesPanel").find("ul").children().each(function( index ) {
+
+                        console.log( index + ": " + jQuery( this ).text() );
+
+                        if ( jQuery( this ).text() > className ) {
+
+                            jQuery( this ).before(
+                                '<li id="' + classId + '">'+
+                                '<a href="ap3xdocs__scratch?id=' + classId + '">' +
+                                className +
+                                '</a></li>'
+                            );
+
+                            appendClassToAddAtEndOfList = true;
+
+                            return false; // exit out of the loop
+                        }
+
+                    });
+
+                    if ( appendClassToAddAtEndOfList ) {
+                        jQuery(".spanAllClassesPanel").find("ul").children().last().after(
+                                '<li id="' + classId + '">'+
+                                '<a href="ap3xdocs__scratch?id=' + classId + '">' +
+                                className +
+                                '</a></li>'
+                            );
+                    }
+                }
+
+                if ( eventToProcess.type == "deleted" ) {
+                    console.log(eventToProcess.type );
+
+//                    jQuery(".spanAllClassesPanel").find("ul").children().each(function( index ) {
+//
+//                        console.log( index + ": " + jQuery( this ).text() );
+//
+//                        if ( jQuery( this ).text() == className ) {
+//
+//                            jQuery(".spanAllClassesPanel").find("ul").children().remove( jQuery( this ) );
+//
+//                            return false; // exit out of the loop
+//                        }
+//
+//                    });
+
+                    jQuery(".spanAllClassesPanel").find("ul").children().remove("#"+classId);
+
+                }
+
+            };
+
+
+
+            (function($){
+                jQuery(document).ready(function() {
+                    // Connect to the CometD endpoint
+                    jQuery.cometd.init({
+                       url: window.location.protocol+'//'+window.location.hostname+'/cometd/36.0/',
+                       requestHeaders: { Authorization: 'OAuth {!$Api.Session_ID}'}
+                   });
+
+                   // Subscribe to a topic. JSON-encoded update will be returned
+                   // in the callback
+                   jQuery.cometd.subscribe('/topic/CodeInfoUpdates', function(message) {
+                       jQuery('#content').prepend('<p>Notification: ' +
+                            'Channel: ' + JSON.stringify(message.channel) + '<br>' +
+                            'Record name: ' + JSON.stringify(message.data.sobject.Name) +
+                            '<br>' + 'ID: ' + JSON.stringify(message.data.sobject.Id) +
+                            '<br>' + 'Filename: ' + JSON.stringify(message.data.sobject.ap3xdocs__FileName__c) +
+                            '<br>' + 'Event type: ' + JSON.stringify(message.data.event.type) +
+                            '<br>' + 'Created: ' + JSON.stringify(message.data.event.createdDate) +
+                            '</p>');
+
+                        processClassEvent( message.data );
+                    });
+
+                });
+           })(jQuery)
+
+           function disconnect() {
+               jQuery.cometd.disconnect();
+           }
+
+           window.onbeforeunload = disconnect;
+
+       </script>
+
     </head>
 
-    <apex:stylesheet value="{!urlfor($Resource.apexdocs, 'css/apexdocs-bootstrap.css')}"/>
-    <apex:includeScript value="{!urlfor($Resource.apexdocsjquery, 'js/jquery.js')}"/>
-    <apex:includeScript value="{!urlfor($Resource.apexdocsbootstrap, 'js/bootstrap.js')}"/>
     <apex:form >
     <apex:outputPanel styleClass="container-fluid" layout="block">
         <apex:outputPanel styleClass="row-fluid" layout="block">
             <apex:outputPanel id="allClassesPanel" styleClass="span2" style="overflow:auto;" layout="block">
                 <!--Sidebar content-->
                 <h4>All Classes</h4>
-
+<!--
                 <apex:dataList value="{! availableClasses }" var="classFile" styleClass="unstyled">
                     <apex:outputLink value="{! urlfor( $CurrentPage.name, null, ['id'=classFile.id])  }" >
                         <apex:outputText value="<em>{! classFile.name }</em>" escape="false" rendered="{! classFile.isInterface }" />
                         <apex:outputText value="{!classFile.name}" rendered="{! not(classFile.isInterface) }" />
                     </apex:outputLink>
                 </apex:dataList>
+ -->
+                <ul class="unstyled" >
+                <apex:repeat value="{! availableClasses }" var="classFile" id="theAvailabileClasses">
+                    <li id="{! classFile.id }">
+                    <apex:outputLink value="{! urlfor( $CurrentPage.name, null, ['id'=classFile.id])  }" styleClass="{! classFile.id }">
+                        <apex:outputText value="<em>{! classFile.name }</em>" escape="false" rendered="{! classFile.isInterface }" />
+                        <apex:outputText value="{!classFile.name}" rendered="{! not(classFile.isInterface) }" />
+                    </apex:outputLink>
+                    </li>
+                </apex:repeat>
+                </ul>
             </apex:outputPanel>
             <div class="span10">
                 <!--Body content-->

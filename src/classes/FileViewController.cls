@@ -261,8 +261,14 @@ public with sharing class FileViewController
 
         PageReference nextPage = ApexPages.currentPage();
 
+        // remove all parameters
+        for (String key : ApexPages.currentPage().getParameters().keyset() )
+        {
+            nextPage.getParameters().remove( key );
+        }
+
         nextPage.getParameters().put(PARAM_CODE_INFO_REFRESH, 'true' );
-//        nextPage.setRedirect(true);
+        nextPage.setRedirect(true);
 
         return nextPage;
     }
