@@ -41,7 +41,10 @@ public class ApexClassesSelector
     {
         Organization currentOrganzationRecord = [select Id, Name, NamespacePrefix, InstanceName, IsSandbox from Organization limit 1];
 
-        DEFAULT_WHERE_CLAUSE = ' ' + ApexClass.NamespacePrefix + ' = \'' + currentOrganzationRecord.NamespacePrefix + '\'';
+        DEFAULT_WHERE_CLAUSE = ' ' + ApexClass.NamespacePrefix + ' = '
+                                        + (string.isblank(currentOrganzationRecord.NamespacePrefix)
+                                            ? 'null'
+                                            : '\'' + currentOrganzationRecord.NamespacePrefix + '\'');
         DEFAULT_WHERE_CLAUSE_AS_ADDITION = ' and' + DEFAULT_WHERE_CLAUSE;
     }
 
