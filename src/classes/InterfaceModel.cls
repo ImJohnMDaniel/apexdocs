@@ -72,8 +72,8 @@ public class InterfaceModel extends ApexConstructBaseModel
         {
         	string interfaceKeywordToFind = ' interface ';
             //system.debug('## File Name = ' + nameLine.trim().lastIndexOf(' '));
-            integer fFound = nameLine.indexOf(interfaceKeywordToFind);
-            integer lFound = nameLine.indexOf(' ', fFound + interfaceKeywordToFind.length());
+            integer fFound = nameLine.toLowerCase().indexOf(interfaceKeywordToFind);
+            integer lFound = nameLine.toLowerCase().indexOf(' ', fFound + interfaceKeywordToFind.length());
 
             if (lFound == -1)
                 return nameLine.substring(fFound + interfaceKeywordToFind.length());

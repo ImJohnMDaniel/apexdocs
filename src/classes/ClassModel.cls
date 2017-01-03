@@ -183,8 +183,8 @@ public class ClassModel extends ApexConstructBaseModel
         {
             string classKeywordToFind = ' class ';
             //system.debug('## File Name = ' + nameLine.trim().lastIndexOf(' '));
-            integer fFound = nameLine.indexOf(classKeywordToFind);
-            integer lFound = nameLine.indexOf(' ', fFound + classKeywordToFind.length());
+            integer fFound = nameLine.toLowerCase().indexOf(classKeywordToFind);
+            integer lFound = nameLine.toLowerCase().indexOf(' ', fFound + classKeywordToFind.length());
 
             if (lFound == -1)
                 return nameLine.substring(fFound + classKeywordToFind.length());
