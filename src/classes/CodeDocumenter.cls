@@ -1,8 +1,8 @@
 public class CodeDocumenter
 	implements Queueable, Database.Batchable<CodeDocumentScopeChunk>
 {
-    private static Integer MAX_CODE_LINES_PER_EXECUTION_THREAD = 25000;
-    private static Integer MAX_CODE_LINES_FOR_PRIMARY_EXECUTION_THREAD = 10000;
+    private static Integer MAX_CHARACTERS_PER_EXECUTION_THREAD = 25000;
+    private static Integer MAX_CHARACTERS_FOR_PRIMARY_EXECUTION_THREAD = 10000;
 
     private static list<string> allAccessModifiersList { get; set; }
 
@@ -90,7 +90,7 @@ public class CodeDocumenter
         list<ApexClass> classesToProcessInSeparateThread = new list<ApexClass>();
 
         // cumlative count of the number of apex code lines processed thus far in this thread.
-        Integer totalNumberOfLinesParsedSoFar = 0;
+        Integer totalNumberOfCharactersParsedSoFar = 0;
 
         for (ApexClass clazz : classListForProcessing)
         {
@@ -100,11 +100,11 @@ public class CodeDocumenter
                 && classListForProcessing.size() > 1
 // TODO: Move the following thresholds out to config custom setting
                 // send this to another thread if its size is greater than the threshold.
-                && ( clazz.LengthWithoutComments > MAX_CODE_LINES_PER_EXECUTION_THREAD
+                && ( clazz.LengthWithoutComments > MAX_CHARACTERS_PER_EXECUTION_THREAD
                     // if there is only 15% of less of the CPU time left, go to batch
                     || ( System.Limits.getCpuTime() / System.Limits.getLimitCpuTime() > 0.85 )
-                    // if the cumlative count of the number of apex code lines processed thus far in this thread is greater than MAX_CODE_LINES_FOR_PRIMARY_EXECUTION_THREAD.
-                    || totalNumberOfLinesParsedSoFar > MAX_CODE_LINES_FOR_PRIMARY_EXECUTION_THREAD
+                    // if the cumlative count of the number of apex code lines processed thus far in this thread is greater than MAX_CHARACTERS_FOR_PRIMARY_EXECUTION_THREAD.
+                    || totalNumberOfCharactersParsedSoFar > MAX_CHARACTERS_FOR_PRIMARY_EXECUTION_THREAD
                     )
                 )
             {
@@ -113,7 +113,7 @@ public class CodeDocumenter
             }
             else
             {
-                totalNumberOfLinesParsedSoFar += clazz.LengthWithoutComments;
+                totalNumberOfCharactersParsedSoFar += clazz.LengthWithoutComments;
 
                 // otherwise process the class in the current context.
                 models.add(parseApexClass(clazz, false));
@@ -128,7 +128,11 @@ public class CodeDocumenter
 
                         nestedClazz.id = clazz.id;
                         nestedClazz.Name = nestedClassName;
+                        nestedClazz.ApiVersion = clazz.ApiVersion;
+                        nestedClazz.Status = 'Active';
+                        nestedClazz.IsValid = true;
                         nestedClazz.Body = String.join(this.nestedClassLineMap.get(clazz.id).get(nestedClassName), '\n');
+                        nestedClazz.LengthWithoutComments = nestedClazz.Body.length();
 
                         models.add( parseApexClass(nestedClazz, true ) );
                     }
@@ -140,7 +144,10 @@ public class CodeDocumenter
 
         persistFileModels(models);
 
-        resolveTheClassLinks();
+        if ( ! this.isRunningInSeparateThread )
+        {
+            resolveTheClassLinks();
+        }
 
         if ( ! classesToProcessInSeparateThread.isEmpty() )
         {
@@ -669,7 +676,6 @@ public class CodeDocumenter
                         && fileModel instanceOf IIsTest)
                     {
                         ((IIsTest)fileModel).declareThisAUnitTestClass();
-system.debug(logginglevel.error, fileModel);
                     }
 
                     // Check to see if the class extends another class
@@ -925,6 +931,7 @@ system.debug(logginglevel.error, fileModel);
             {
                system.debug(getLoggingLevel(), 'Error Cause: line number ' + e.getCause().getLineNumber() + ' : ' + e.getCause().getMessage());
             }
+            throw new CodeDocumenterException( e );
         }
         return null;
     }
@@ -1295,7 +1302,7 @@ system.debug(logginglevel.error, fileModel);
     {
     	if (apexClasses == null)
         {
-            throw new CodeDoumenterException('The files parameter for the documentApexFiles(list<ApexClass>) method cannot be null.');
+            throw new CodeDocumenterException('The files parameter for the documentApexFiles(list<ApexClass>) method cannot be null.');
         }
 
         return ( new CodeDocumenter( apexClasses, false ) ).execute();
@@ -1332,8 +1339,8 @@ system.debug(logginglevel.error, fileModel);
         {
             clazzNameSet.add(clazz.name);
 
-            // if the class LengthWithoutComments > MAX_CODE_LINES_PER_EXECUTION_THREAD, then dedicate a chunk only to that one
-            if ( clazz.LengthWithoutComments > MAX_CODE_LINES_PER_EXECUTION_THREAD )
+            // if the class LengthWithoutComments > MAX_CHARACTERS_PER_EXECUTION_THREAD, then dedicate a chunk only to that one
+            if ( clazz.LengthWithoutComments > MAX_CHARACTERS_PER_EXECUTION_THREAD )
             {
                 // create a new chunk
                 CodeDocumentScopeChunk dedicatedChunk = new CodeDocumentScopeChunk();
@@ -1345,7 +1352,7 @@ system.debug(logginglevel.error, fileModel);
             else
             {
                 // if the currentChunk is nearing capacity, add it to the list and create a new chunk
-                if ( ( currentChunk.getTotalNumberOfCodeLinesToDocument() + clazz.LengthWithoutComments ) > MAX_CODE_LINES_PER_EXECUTION_THREAD )
+                if ( ( currentChunk.getTotalNumberOfCodeLinesToDocument() + clazz.LengthWithoutComments ) > MAX_CHARACTERS_PER_EXECUTION_THREAD )
                 {
                     chunksToDocument.add( currentChunk );
 
@@ -1404,7 +1411,7 @@ system.debug(logginglevel.error, fileModel);
      *      CodeDoumenter class
      *  @since 1.0
      */
-    public class CodeDoumenterException extends Exception {}
+    public class CodeDocumenterException extends Exception {}
 
     public class CodeUnitToDocument
     {
