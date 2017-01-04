@@ -288,7 +288,7 @@
                         <dt>All Implemented Interfaces:</dt>
                         <dd>
                             <apex:repeat value="{! implementable.interfacesImplemented }" var="classLink">
-                            <apex:outputLink value="{! classLink.url }" rendered="{! classLink.isLinkResolved }">{! classLink.name }</apex:outputLink><apex:outputText value="{! classLink.name }" rendered="{! not(classLink.isLinkResolved) }" />,&nbsp;
+                            <apex:outputLink value="{! classLink.url }" rendered="{! classLink.isLinkResolved }">{! classLink.name }</apex:outputLink><apex:outputText value="{! classLink.name }" rendered="{! not(classLink.isLinkResolved) }" />, &nbsp;
                             </apex:repeat>
                         </dd>
                     </dl>
@@ -299,7 +299,7 @@
                        <dt>Direct Known Subclasses:</dt>
                        <dd>
                             <apex:repeat value="{! knownSubClasses }" var="classLink">
-                                <apex:outputLink value="{! classLink.fromUrl }">{! classLink.fromName }</apex:outputLink>,&nbsp;
+                                <apex:outputLink value="{! classLink.fromUrl }">{! classLink.fromName }</apex:outputLink>, &nbsp;
                             </apex:repeat>
                        </dd>
                     </dl>
@@ -309,7 +309,7 @@
                        <dt>Direct Known Implementors:</dt>
                        <dd>
                             <apex:repeat value="{! knownImplementors }" var="classLink">
-                                <apex:outputLink value="{! classLink.fromUrl }">{! classLink.fromName }</apex:outputLink>,&nbsp;
+                                <apex:outputLink value="{! classLink.fromUrl }">{! classLink.fromName }</apex:outputLink>, &nbsp;
                             </apex:repeat>
                        </dd>
                     </dl>
@@ -328,7 +328,7 @@
                        <dt>Known Classes That Throw This Exception:</dt>
                        <dd>
                             <apex:repeat value="{! knownThrowersOfException }" var="classLink">
-                                <apex:outputLink value="{! classLink.fromUrl }">{! classLink.fromName }</apex:outputLink>,&nbsp;
+                                <apex:outputLink value="{! classLink.fromUrl }">{! classLink.fromName }</apex:outputLink>, &nbsp;
                             </apex:repeat>
                        </dd>
                     </dl>
