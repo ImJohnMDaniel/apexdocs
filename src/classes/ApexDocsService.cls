@@ -72,6 +72,11 @@ public with sharing class ApexDocsService
         return service().document( model );
     }
 
+    public static IFile document(final String apexClassText)
+    {
+        return null; //service().document( apexClassText );
+    }
+
     public static void reset()
     {
         service().reset();

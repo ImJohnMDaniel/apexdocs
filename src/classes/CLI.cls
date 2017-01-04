@@ -40,6 +40,24 @@ global class CLI
         return output;
     }
 
+    global static string documentFromApexClassText(final string apexClassText)
+    {
+        string output = null;
+
+        //if ( ! classes.isEmpty() )
+        //{
+            //IFile classAsIFile = ApexDocsService.document( classes[0] );
+
+            //output = classAsIFile != null ? JSON.SerializePretty( classAsIFile ) : null;
+        //}
+        //else
+        //{
+            //throw new CLIException('Unable to find class named '+apexClassName);
+        //}
+
+        return output;
+    }
+
     /**
      *  Method used to document all Apex classes in the default namespace of the org.
      */
