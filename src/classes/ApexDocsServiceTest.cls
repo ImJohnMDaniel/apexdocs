@@ -76,8 +76,8 @@ private class ApexDocsServiceTest
 	{
 		fflib_ApexMocks apexMocks = new fflib_ApexMocks();
 
-		IApexClassesSelector mockApexClassesSelector = new ApexDocsMocks.ApexClassesSelector( apexMocks );
+//		IApexClassesSelector mockApexClassesSelector = new ApexDocsMocks.ApexClassesSelector( apexMocks );
 
-		Application.Selector.setMock( mockApexClassesSelector );
+//		Application.Selector.setMock( mockApexClassesSelector );
 	}
 }
