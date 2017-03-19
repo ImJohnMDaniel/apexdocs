@@ -10,7 +10,7 @@ public class CodeDocumenter
     {
         allAccessModifiersList = new list<string>();
 
-        // These next four strings are added to the list in this manner to ensure that
+        // These next group of strings are added to the list in this manner to ensure that
         // they are not accidently picked up as "methods" because they have the "access modifier" words
         allAccessModifiersList.add('glo'+'bal');
         allAccessModifiersList.add('pub'+'lic');
