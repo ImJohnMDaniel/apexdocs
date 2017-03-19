@@ -7,7 +7,6 @@
         <members>ApexDocModelCompositeTransformer</members>
         <members>ApexDocsConfigHelper</members>
         <members>ApexDocsInstallHandler</members>
-        <members>ApexDocsMocks</members>
         <members>ApexDocsService</members>
         <members>ApexDocsServiceException</members>
         <members>ApexDocsServiceImpl</members>
