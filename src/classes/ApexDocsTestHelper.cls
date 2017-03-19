@@ -23,7 +23,7 @@ public class ApexDocsTestHelper
             clazz.id = fflib_IDGenerator.generate(ApexClass.SObjectType);
 
             clazz.name = staticResourceFile.Name.replace(UNIT_TEST_STATIC_RESOURCE_FILE_PREFIX + '_','');
-            clazz.ApiVersion = 38.0;
+            clazz.ApiVersion = 39.0;
             clazz.Status = 'Active';
             clazz.IsValid = true;
             clazz.Body = staticResourceFile.body.toString();
