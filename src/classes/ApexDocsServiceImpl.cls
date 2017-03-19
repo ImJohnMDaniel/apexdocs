@@ -340,6 +340,33 @@ public with sharing class ApexDocsServiceImpl
     	return outputModel;
     }
 
+	public void initializeEnvironment()
+	{
+		initializePushTopic();
+	}
+
+	private void initializePushTopic()
+	{
+		delete [select id from PushTopic where name = 'CodeInfoUpdates'];
+
+		PushTopic pt = new PushTopic();
+
+		pt.name = 'CodeInfoUpdates';
+		// TODO: switch this assignment of the PushTopic.query to use the selector instead once the framework is updated.
+		pt.query = 'select Id, Name, CreatedDate, CreatedById, LastModifiedDate, LastModifiedById, ap3xdocs__ApexClassId__c, ap3xdocs__Filename__c, ap3xdocs__ModelType__c from ap3xdocs__CodeInfo__c';
+		pt.ApiVersion = 39.0;
+		pt.isActive = true;
+		pt.NotifyForFields = 'All';
+		//pt.NotifyForOperations = 'All';
+		pt.Description = '';
+		pt.NotifyForOperationCreate = true;
+		pt.NotifyForOperationUpdate = true;
+		pt.NotifyForOperationDelete = true;
+		pt.NotifyForOperationUndelete = true;
+
+		insert pt;
+	}
+
     public void reset()
     {
         delete [select id from CodeInfo__c];

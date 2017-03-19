@@ -72,6 +72,11 @@ public with sharing class ApexDocsService
         return service().document( model );
     }
 
+	public static void initializeEnvironment()
+	{
+		service().initializeEnvironment();
+	}
+
     public static void reset()
     {
         service().reset();
