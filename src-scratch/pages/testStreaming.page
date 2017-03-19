@@ -1,0 +1,53 @@
+<apex:page applyHtmlTag="true" applyBodyTag="false">
+
+ 	<apex:includeScript value="{!urlfor($Resource.apexdocs, 'js/jquery.js')}"/>
+    <apex:includeScript value="{!urlfor($Resource.apexdocs, 'js/bootstrap.js')}"/>
+    <apex:includeScript value="{!urlfor($Resource.apexdocs, 'js/cometd.js')}"/>
+    <apex:includeScript value="{!urlfor($Resource.apexdocs, 'js/json2.js')}"/>
+    <apex:includeScript value="{!urlfor($Resource.apexdocs, 'js/jquery_cometd.js')}"/>
+
+
+    <head>
+
+        <script type="text/javascript">
+           jQuery.noConflict();
+
+
+            (function($){
+                jQuery(document).ready(function() {
+                    // Connect to the CometD endpoint
+                    jQuery.cometd.init({
+                       url: window.location.protocol+'//'+window.location.hostname+'/cometd/39.0/',
+                       requestHeaders: { Authorization: 'OAuth {!$Api.Session_ID}'}
+                   });
+
+                   // Subscribe to a topic. JSON-encoded update will be returned
+                   // in the callback
+                   jQuery.cometd.subscribe('/topic/CodeInfoUpdates', function(message) {
+                       $('#content').append('<p>Notification: ' +
+                            'Channel: ' + JSON.stringify(message.channel) + '<br>' +
+                            'Record name: ' + JSON.stringify(message.data.sobject.Name) +
+                            '<br>' + 'ID: ' + JSON.stringify(message.data.sobject.Id) +
+                            '<br>' + 'Filename: ' + JSON.stringify(message.data.sobject.ap3xdocs__FileName__c) +
+                            '<br>' + 'Event type: ' + JSON.stringify(message.data.event.type) +
+                            '<br>' + 'Created: ' + JSON.stringify(message.data.event.createdDate) +
+                            '</p>');
+                    });
+                });
+           })(jQuery)
+
+           function disconnect() {
+               jQuery.cometd.disconnect();
+           }
+
+           window.onbeforeunload = disconnect;
+       </script>
+
+
+
+    </head>
+
+    <div id="content">
+        <apex:outputText value="Streaming API Test Page" />
+    </div>
+</apex:page>

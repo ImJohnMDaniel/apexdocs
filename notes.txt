@@ -1,0 +1,3 @@
+From the resource directory, execute
+
+jar cvfM ../src/staticresources/apexdocs.resource apexdocs.resource/*
