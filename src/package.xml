@@ -112,11 +112,6 @@
     </types>
     <types>
         <members>apexdocs</members>
-        <members>apexdocsbootstrap</members>
-        <members>apexdocsjquery</members>
-        <members>json2</members>
-        <members>jquery_cometd</members>
-        <members>cometd</members>
         <name>StaticResource</name>
     </types>
     <version>39.0</version>
