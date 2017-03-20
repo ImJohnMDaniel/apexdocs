@@ -24,6 +24,10 @@
     	<name>ApexClass</name>
     </types>
     <types>
+        <members>fflib_QueryFactory_crossobject_fieldsets_not_allowed_error</members>
+        <members>fflib_QueryFactory_fieldset_wrong_sobject_error</members>
+        <members>fflib_QueryFactory_recursive_subquery_error</members>
+        <members>fflib_QueryFactory_subquery_invalid_relationship</members>
         <members>fflib_security_error_field_not_insertable</members>
         <members>fflib_security_error_field_not_readable</members>
         <members>fflib_security_error_field_not_updateable</members>
@@ -31,7 +35,7 @@
         <members>fflib_security_error_object_not_insertable</members>
         <members>fflib_security_error_object_not_readable</members>
         <members>fflib_security_error_object_not_updateable</members>
-    	<name>CustomLabel</name>
+        <name>CustomLabel</name>
     </types>
     <version>38.0</version>
 </Package>
