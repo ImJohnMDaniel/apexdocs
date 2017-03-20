@@ -1,0 +1,153 @@
+<project name="base-functions-library"
+    xmlns:sf="antlib:com.salesforce">
+
+    <!-- Salesforce ANT jar -->
+    <property name="salesforce.ant.jar.filepath" value="${basedir}/lib/ant-salesforce-38.0.jar" />
+
+    <taskdef resource="com/salesforce/antlib.xml" uri="antlib:com.salesforce">
+        <classpath>
+            <pathelement location="${salesforce.ant.jar.filepath}" />
+        </classpath>
+    </taskdef>
+
+    <target name="abstract-deploy" >
+        <!-- default the ignoreWarnings attribute to false -->
+
+    	<condition property="ignoreWarnings.set" else="false">
+          <isset property="ignore.warnings"/>
+        </condition>
+    	<if>
+    	    <equals arg1="${ignoreWarnings.set}" arg2="true" />
+    	    <then>
+                <var name="the.ignore.warnings" value="${ignore.warnings}" />
+    	    </then>
+    		<else>
+    		    <var name="the.ignore.warnings" value="false" />
+    		</else>
+        </if>
+
+        <sf:deploy username="${the.username}" password="${the.password}${the.securityToken}" serverurl="${the.serverurl}"
+            singlePackage="true"
+            deployRoot="${working.base.dir}"
+            checkOnly="${the.checkOnly}"
+        	ignoreWarnings="${the.ignore.warnings}"
+            pollWaitMillis="10000" maxPoll="2000"
+        />
+    </target>
+
+    <target name="abstract-deploy-target">
+
+        <echo message="_______________________________________________________________________________" />
+        <echo message=" ${line.separator}" />
+        <echo message="    Deploying to ${sf.target.serverurl}" />
+        <echo message="    Using credentials of ${sf.target.username}" />
+        <echo message=" ${line.separator}" />
+        <echo message="_______________________________________________________________________________" />
+        <echo message=" ${line.separator}" />
+        <echo message=" ${line.separator}" />
+
+        <antcall target="abstract-deploy" inheritall="yes">
+            <param name="the.username" value="${sf.target.username}" />
+            <param name="the.password" value="${sf.target.password}" />
+            <param name="the.securityToken" value="${sf.target.securityToken}" />
+            <param name="the.serverurl" value="${sf.target.serverurl}" />
+            <param name="the.checkOnly" value="false" />
+        </antcall>
+    </target>
+
+    <target name="abstract-deploy-source">
+
+        <echo message="_______________________________________________________________________________" />
+        <echo message=" ${line.separator}" />
+        <echo message="    Deploying to ${sf.source.serverurl}" />
+        <echo message="    Using credentials of ${sf.source.username}" />
+        <echo message=" ${line.separator}" />
+        <echo message="_______________________________________________________________________________" />
+        <echo message=" ${line.separator}" />
+        <echo message=" ${line.separator}" />
+
+        <antcall target="abstract-deploy" inheritall="yes">
+            <param name="the.username" value="${sf.source.username}" />
+            <param name="the.password" value="${sf.source.password}" />
+            <param name="the.securityToken" value="${sf.source.securityToken}" />
+            <param name="the.serverurl" value="${sf.source.serverurl}" />
+            <param name="the.checkOnly" value="false" />
+        </antcall>
+    </target>
+
+    <target name="abstract-retrieve" >
+
+        <echo message="_______________________________________________________________________________" />
+        <echo message=" ${line.separator}" />
+        <echo message="    Retrieving from ${sf.source.serverurl}" />
+        <echo message="    Using credentials of ${sf.source.username}" />
+        <echo message=" ${line.separator}" />
+        <echo message="_______________________________________________________________________________" />
+        <echo message=" ${line.separator}" />
+        <echo message=" ${line.separator}" />
+
+        <sf:retrieve username="${the.username}" password="${the.password}${the.securityToken}" serverurl="${the.serverurl}"
+            singlePackage="true" unpackaged="${working.base.dir}/package.xml" pollWaitMillis="10000" maxPoll="2000"
+            retrieveTarget="${working.base.dir}"
+        />
+    </target>
+
+    <target name="abstract-retrieve-target">
+        <antcall target="abstract-retrieve" inheritall="yes">
+            <param name="the.username" value="${sf.target.username}" />
+            <param name="the.password" value="${sf.target.password}" />
+            <param name="the.securityToken" value="${sf.target.securityToken}" />
+            <param name="the.serverurl" value="${sf.target.serverurl}" />
+        </antcall>
+    </target>
+
+    <target name="abstract-retrieve-source">
+        <antcall target="abstract-retrieve" inheritall="yes">
+            <param name="the.username" value="${sf.source.username}" />
+            <param name="the.password" value="${sf.source.password}" />
+            <param name="the.securityToken" value="${sf.source.securityToken}" />
+            <param name="the.serverurl" value="${sf.source.serverurl}" />
+        </antcall>
+    </target>
+
+    <target name="abstract-validate-target">
+
+        <echo message="_______________________________________________________________________________" />
+        <echo message=" ${line.separator}" />
+        <echo message="    Validating deployment to ${sf.target.serverurl}" />
+        <echo message="    Using credentials of ${sf.target.username}" />
+        <echo message=" ${line.separator}" />
+        <echo message="_______________________________________________________________________________" />
+        <echo message=" ${line.separator}" />
+        <echo message=" ${line.separator}" />
+
+        <antcall target="abstract-deploy" inheritall="yes">
+            <param name="the.username" value="${sf.target.username}" />
+            <param name="the.password" value="${sf.target.password}" />
+            <param name="the.securityToken" value="${sf.target.securityToken}" />
+            <param name="the.serverurl" value="${sf.target.serverurl}" />
+            <param name="the.checkOnly" value="true" />
+        </antcall>
+    </target>
+
+    <target name="abstract-validate-source">
+
+        <echo message="_______________________________________________________________________________" />
+        <echo message=" ${line.separator}" />
+        <echo message="    Validating deployment to ${sf.source.serverurl}" />
+        <echo message="    Using credentials of ${sf.source.username}" />
+        <echo message=" ${line.separator}" />
+        <echo message="_______________________________________________________________________________" />
+        <echo message=" ${line.separator}" />
+        <echo message=" ${line.separator}" />
+
+        <antcall target="abstract-deploy" inheritall="yes">
+            <param name="the.username" value="${sf.source.username}" />
+            <param name="the.password" value="${sf.source.password}" />
+            <param name="the.securityToken" value="${sf.source.securityToken}" />
+            <param name="the.serverurl" value="${sf.source.serverurl}" />
+            <param name="the.checkOnly" value="true" />
+        </antcall>
+    </target>
+
+</project>
