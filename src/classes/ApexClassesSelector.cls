@@ -12,7 +12,7 @@ public class ApexClassesSelector
         return (IApexClassesSelector) Application.Selector.newInstance(ApexClass.SObjectType);
     }
 
-    private static final string ADDITIONAL_FIELDS = 'LastModifiedBy.Name, CreatedBy.Name';
+    private static final set<string> ADDITIONAL_FIELDS_SET = new set<String>{ 'LastModifiedBy.Name', 'CreatedBy.Name' };
 
     public list<Schema.SObjectField> getSObjectFieldList()
     {
@@ -55,56 +55,21 @@ public class ApexClassesSelector
 
     public list<ApexClass> selectById(set<ID> idSet)
     {
-        assertIsAccessible();
-        return (list<ApexClass>) Database.query(String.format('select {0}, {4}' +
- 						                                      ' from {1}' +
- 						                                     ' where id in :idSet {3}' +
- 						                                     ' order by {2}'
- 						                                    , new List<String>{
- 						                                            getFieldListString(),
-						                                            getSObjectName(),
-						                                            getOrderBy(),
-						                                            DEFAULT_WHERE_CLAUSE_AS_ADDITION,
-						                                            ADDITIONAL_FIELDS
-						                                        }));
-
+		return Database.query( newQueryFactory().setCondition('id in :idSet ' + DEFAULT_WHERE_CLAUSE_AS_ADDITION).selectFields( ADDITIONAL_FIELDS_SET ).toSOQL() );
     }
 
     public list<ApexClass> selectByName(set<String> nameSet)
     {
-        assertIsAccessible();
-        return (list<ApexClass>) Database.query(String.format('select {0}, {4}' +
-                                                               ' from {1}' +
-                                                              ' where name in :nameSet {3}' +
-                                                              ' order by {2}'
-                                                             , new List<String>{
-                                                                    getFieldListString(),
-                                                                    getSObjectName(),
-                                                                    getOrderBy(),
-                                                                    DEFAULT_WHERE_CLAUSE_AS_ADDITION,
-                                                                    ADDITIONAL_FIELDS
-                                                                    }));
+    	return Database.query( newQueryFactory().setCondition('name in :nameSet ' + DEFAULT_WHERE_CLAUSE_AS_ADDITION).selectFields( ADDITIONAL_FIELDS_SET ).toSOQL() );
     }
 
     public string selectAllQuery()
     {
-    	return string.format('select {0}, {4}' +
-                              ' from {1}' +
-                             ' where {3}' +
-                             ' order by {2}',
-                        new list<string>{
-                            getFieldListString(),
-                            getSObjectName(),
-                            getOrderBy(),
-                            DEFAULT_WHERE_CLAUSE,
-                            ADDITIONAL_FIELDS
-                        });
-      }
+    	return newQueryFactory().setCondition(DEFAULT_WHERE_CLAUSE).selectFields( ADDITIONAL_FIELDS_SET ).toSOQL();
+	}
 
     public list<ApexClass> selectAll()
     {
-    	assertIsAccessible();
-
         string query = selectAllQuery();
     	system.debug(query);
         return (list<ApexClass>) Database.query(query);

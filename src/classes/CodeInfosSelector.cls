@@ -36,54 +36,17 @@ public class CodeInfosSelector
 
     public list<CodeInfo__c> selectByApexClassNameWithClassLinks(set<string> fileNameSet)
     {
-        assertIsAccessible();
+    	fflib_QueryFactory mainQueryFactory = newQueryFactory().setCondition(CodeInfo__c.Filename__c + ' in :fileNameSet');
 
-        ClassLinksSelector theClassLinksSelector = new ClassLinksSelector();
-        AttachmentsSelector theAttachmentsSelector = new AttachmentsSelector();
+		new ClassLinksSelector().addQueryFactorySubselect( mainQueryFactory );
 
-        theClassLinksSelector.assertIsAccessible();
+		new AttachmentsSelector().addQueryFactorySubselect( mainQueryFactory );
 
-        string query = string.format(
-                'select {0} ' +
-                     ', (select {4} ' +
-                          'from {5} ' +
-                         'order by {6})' +
-                     ', (select {7} ' +
-                          'from {8}) ' +
-                  'from {1} ' +
-                 'where {2} in :fileNameSet ' +
-                 'order by {3}',
-            new list<string>{
-                getFieldListString(), // 0
-                getSObjectName(), // 1
-                CodeInfo__c.Filename__c.getDescribe().getName(), // 2
-                getOrderBy(), // 3
-                theClassLinksSelector.getFieldListString(), // 4
-                'ClassLinks__r', // 5
-                theClassLinksSelector.getOrderBy(), // 6
-                theAttachmentsSelector.getFieldListString(), // 7
-                'Attachments' // 8
-        });
-
-        system.debug(query);
-
-        return (list<CodeInfo__c>) database.query(query);
+    	return Database.query( mainQueryFactory.toSOQL() );
     }
 
     public list<CodeInfo__c> selectAll()
     {
-        assertIsAccessible();
-
-        string query = string.format(
-                'select {0} ' +
-                  'from {1} ' +
-                 'order by {2}',
-            new list<string>{
-                getFieldListString(),
-                getSObjectName(),
-                CodeInfo__c.FileName__c.getDescribe().getName()
-        });
-
-        return (list<CodeInfo__c>) database.query(query);
+    	return Database.query( newQueryFactory().toSOQL() );
     }
 }
