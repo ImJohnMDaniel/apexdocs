@@ -9,5 +9,6 @@ public interface IApexDocsService
     void documentAll();
     IFile document(final ApexClass clazz);
     IFile document(final IFile model);
+    void initializeEnvironment();
     void reset();
 }

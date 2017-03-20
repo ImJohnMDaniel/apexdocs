@@ -3,11 +3,11 @@
 
     <apex:stylesheet value="{!urlfor($Resource.apexdocs, 'css/apexdocs-bootstrap.css')}"/>
 
-    <apex:includeScript value="{!urlfor($Resource.apexdocsjquery, 'js/jquery.js')}"/>
-    <apex:includeScript value="{!urlfor($Resource.apexdocsbootstrap, 'js/bootstrap.js')}"/>
-    <apex:includeScript value="{!$Resource.cometd}"/>
-    <apex:includeScript value="{!$Resource.json2}"/>
-    <apex:includeScript value="{!$Resource.jquery_cometd}"/>
+	<apex:includeScript value="{!urlfor($Resource.apexdocs, 'js/jquery.js')}"/>
+    <apex:includeScript value="{!urlfor($Resource.apexdocs, 'js/bootstrap.js')}"/>
+    <apex:includeScript value="{!urlfor($Resource.apexdocs, 'js/cometd.js')}"/>
+    <apex:includeScript value="{!urlfor($Resource.apexdocs, 'js/json2.js')}"/>
+    <apex:includeScript value="{!urlfor($Resource.apexdocs, 'js/jquery_cometd.js')}"/>
 
     <head>
         <meta charset="utf-8" />
@@ -100,7 +100,7 @@
                 jQuery(document).ready(function() {
                     // Connect to the CometD endpoint
                     jQuery.cometd.init({
-                       url: window.location.protocol+'//'+window.location.hostname+'/cometd/36.0/',
+                       url: window.location.protocol+'//'+window.location.hostname+'/cometd/39.0/',
                        requestHeaders: { Authorization: 'OAuth {!$Api.Session_ID}'}
                    });
 

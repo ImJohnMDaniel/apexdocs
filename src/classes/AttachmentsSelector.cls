@@ -47,44 +47,16 @@ public class AttachmentsSelector
 
 	public list<Attachment> selectByApexClassNameParent(set<string> parentApexClassNameSet)
     {
-        assertIsAccessible();
-
-        string query = string.format(
-                'select {0}'
-				   + ', Body'
-               + ' from {1}'
-              + ' where ParentId in (select id from CodeInfo__c where FileName__c in :parentApexClassNameSet)'
-              + ' order by {2}',
-            new list<string>{
-                getFieldListString(), // 0
-                getSObjectName(), // 1
-                getOrderBy() // 2
-        });
-
-        //system.debug(query);
-
-        return (list<Attachment>) database.query(query);
+    	return Database.query( newQueryFactory().selectField(Attachment.Body)
+    									.setCondition(Attachment.ParentId + ' in (select id from ' + CodeInfo__c.SObjectType
+    									                                                    + ' where ' + CodeInfo__c.FileName__c + ' in :parentApexClassNameSet)')
+    									.toSOQL() );
     }
 
 	public list<Attachment> selectByApexClassNameParent(set<id> parentCodeInfoIdSet)
     {
-        assertIsAccessible();
-
-        string query = string.format(
-                'select {0}'
-				   + ', Body'
-               + ' from {1}'
-              + ' where ParentId in :parentCodeInfoIdSet'
-              + ' order by {2}',
-            new list<string>{
-                getFieldListString(), // 0
-                getSObjectName(), // 1
-                getOrderBy() // 2
-        });
-
-        //system.debug(query);
-
-        return (list<Attachment>) database.query(query);
+    	return Database.query( newQueryFactory().selectField(Attachment.Body)
+    									.setCondition(Attachment.ParentId + ' in :parentCodeInfoIdSet')
+    									.toSOQL() );
     }
-
 }

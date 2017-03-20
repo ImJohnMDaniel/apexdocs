@@ -1,0 +1,179 @@
+<project name="apexdocs"
+    xmlns:sf="antlib:com.salesforce">
+
+    <property name="lib.dir" value="${basedir}/lib"/>
+    <property name="main.src.dir" value="${basedir}/src"/>
+    <property name="resource-bundle.src.dir" value="${basedir}/resource-bundles"/>
+
+    <path id="project-level-ant-tasks.classpath">
+        <fileset dir="lib" />
+    </path>
+
+    <!-- Salesforce ANT jar -->
+    <property name="salesforce.ant.jar.filepath" value="${lib.dir}/ant-salesforce-39.0.jar" />
+
+    <taskdef resource="com/salesforce/antlib.xml" uri="antlib:com.salesforce">
+        <classpath>
+            <pathelement location="${salesforce.ant.jar.filepath}" />
+        </classpath>
+    </taskdef>
+
+    <import file="${lib.dir}/base-functions.xml"/>
+
+    <property name="build.target.dir" value="${basedir}/target" />
+    <property name="deployment.root.dir" value="${build.target.dir}/src" />
+
+    <!-- ANT Contrib Tasks jar -->
+    <property name="ant.contrib.jar.filepath" value="${lib.dir}/ant-contrib-1.0b3.jar" />
+
+    <taskdef resource="net/sf/antcontrib/antlib.xml">
+        <classpath>
+            <pathelement location="${ant.contrib.jar.filepath}" />
+        </classpath>
+    </taskdef>
+
+    <property name="destructive-changes-folder-name" value="src-metadata-deletes" />
+    <property name="build.target.dir" value="${basedir}/target" />
+
+    <property name="build-properties-file-name" value="local.build.properties" />
+    <property name="build-properties-file" value="${basedir}/${build-properties-file-name}" />
+
+    <property file="${build-properties-file}"/>
+
+    <condition property="sf.source.username" value=""> <not> <isset property="sf.source.username"/> </not> </condition>
+    <condition property="sf.source.password" value=""> <not> <isset property="sf.source.password"/> </not> </condition>
+    <condition property="sf.source.securityToken" value=""> <not> <isset property="sf.source.securityToken"/> </not> </condition>
+
+    <target name="deploy-src-to-target" description="Deploys code from the src folder to the target org.">
+
+        <antcall target="prepare-main-code-deployment" />
+
+        <antcall target="abstract-deploy-target">
+            <param name="working.base.dir" value="${deployment.root.dir}" />
+        </antcall>
+
+    </target>
+
+    <target name="deploy-src" description="Deploys code from the src folder.">
+        <antcall target="abstract-deploy-source">
+            <param name="working.base.dir" value="${main.src.dir}" />
+        </antcall>
+    </target>
+
+    <target name="generate-local-properties" description="Creates the expected ${build-properties-file} file to manage credentials for this build process.">
+        <delete file="${build-properties-file}" />
+        <echo></echo>
+        <echo>Creating a new ${build-properties-file-name} at the project root.  Please edit the file with credentials in order to perform a deployment.</echo>
+        <echo></echo>
+        <echo file="${build-properties-file}" append="false"># ${build-properties-file-name}${line.separator}</echo>
+        <echo file="${build-properties-file}" append="true">#${line.separator}</echo>
+        <echo file="${build-properties-file}" append="true"># Specify the login credentials for the desired Salesforce organization${line.separator}</echo>
+        <echo file="${build-properties-file}" append="true"># Use 'https://www.salesforce.com' for production or developer edition (the default if not specified).${line.separator}</echo>
+        <echo file="${build-properties-file}" append="true"># Use 'https://test.salesforce.com for sandbox.${line.separator}</echo>
+        <echo file="${build-properties-file}" append="true">${line.separator}</echo>
+        <echo file="${build-properties-file}" append="true">sf.source.username=${line.separator}</echo>
+        <echo file="${build-properties-file}" append="true">sf.source.password=${line.separator}</echo>
+        <echo file="${build-properties-file}" append="true">sf.source.securityToken=${line.separator}</echo>
+        <echo file="${build-properties-file}" append="true">sf.source.serverurl=${line.separator}</echo>
+        <echo file="${build-properties-file}" append="true">org.wide.email.address=${line.separator}</echo>
+        <echo file="${build-properties-file}" append="true">${line.separator}</echo>
+        <echo file="${build-properties-file}" append="true">sf.target.username=${line.separator}</echo>
+        <echo file="${build-properties-file}" append="true">sf.target.password=${line.separator}</echo>
+        <echo file="${build-properties-file}" append="true">sf.target.securityToken=${line.separator}</echo>
+        <echo file="${build-properties-file}" append="true">sf.target.serverurl=${line.separator}</echo>
+        <echo file="${build-properties-file}" append="true">${line.separator}</echo>
+    </target>
+
+    <target name="prepare-main-code-deployment">
+        <delete dir="${deployment.root.dir}" failonerror="false"/>
+        <mkdir dir="${deployment.root.dir}"/>
+
+        <!-- copy all primary files -->
+        <copy todir="${deployment.root.dir}">
+            <fileset dir="${main.src.dir}"/>
+        </copy>
+
+    	<antcall target="remove-userPreferences-from-profiles" >
+            <param name="the-working-directory" value="${deployment.root.dir}"/>
+        </antcall>
+
+    </target>
+
+	<!-- quickly remove the userPreference tags so that it conflicts between orgs don't occur -->
+    <target name="remove-userPreferences-from-profiles">
+        <replaceregexp flags="gm">
+            <regexp pattern="&lt;userPermissions&gt;\s*&lt;enabled&gt;\S*&lt;/enabled&gt;\s*&lt;name&gt;\S*&lt;/name&gt;\s*&lt;/userPermissions&gt;\s*"/>
+            <substitution expression=""/>
+            <fileset dir="${the-working-directory}/profiles">
+                <include name="*.profile"/>
+            </fileset>
+        </replaceregexp>
+    </target>
+
+    <target name="retrieve-src" description="Retrieves the code to the src folder based on the src/package.xml file.">
+
+        <move file="${main.src.dir}/package.xml" tofile="${basedir}/package.xml" />
+        <delete dir="${main.src.dir}" failonerror="true"/>
+        <mkdir dir="${main.src.dir}"/>
+        <move file="${basedir}/package.xml" tofile="${main.src.dir}/package.xml" />
+
+        <antcall target="abstract-retrieve-source">
+            <param name="working.base.dir" value="${main.src.dir}"/>
+        </antcall>
+    </target>
+
+    <target name="undeploy-obsolete" description="Performs the metadata deletion from the src-metadata-deletes folder.">
+        <antcall target="abstract-deploy-source">
+            <param name="working.base.dir" value="${destructive-changes-folder-name}" />
+            <param name="ignore.warnings" value="true" />
+        </antcall>
+    </target>
+
+    <target name="validate-undeploy-obsolete" description="Validates the metadata deletion from the src-metadata-deletes folder.">
+        <antcall target="abstract-validate-source">
+            <param name="working.base.dir" value="${destructive-changes-folder-name}" />
+            <param name="ignore.warnings" value="true" />
+        </antcall>
+    </target>
+
+    <target name="validate-deploy-src" description="Validates the deployment from the src folder.">
+        <antcall target="abstract-validate-source">
+            <param name="working.base.dir" value="${main.src.dir}" />
+        </antcall>
+    </target>
+
+
+    <target name="validate-deploy-src-to-target" description="Validates the deployment of code base in /src directory to the target org">
+
+        <antcall target="prepare-main-code-deployment" />
+
+        <antcall target="abstract-validate-target">
+            <param name="working.base.dir" value="${deployment.root.dir}" />
+        </antcall>
+
+    </target>
+
+    <target name="scratch">
+
+        <property name="current-x" value="0014"/>
+
+        <script language="javascript">
+            <![CDATA[
+              var version = parseInt(project.getProperty('current-x'));
+              project.setProperty('isGreater', version > 10);
+            ]]>
+        </script>
+
+        <echo message="${isGreater}"/>
+
+    </target>
+
+    <target name="package-resource-bundle-apexdocs" description="Package the static resource apexdocs">
+        <zip basedir="${resource-bundle.src.dir}/apexdocs.resource" destFile="${main.src.dir}/staticresources/apexdocs.resource" />
+    </target>
+
+    <target name="unpack-resource-bundle-apexdocs" description="Unpackage the static resource apexdocs">
+        <unzip src="${main.src.dir}/staticresources/apexdocs.resource" dest="${resource-bundle.src.dir}/apexdocs.resource" />
+    </target>
+
+</project>

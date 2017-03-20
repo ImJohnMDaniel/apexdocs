@@ -82,20 +82,6 @@
         <name>CustomField</name>
     </types>
     <types>
-        <members>fflib_security_error_field_not_insertable</members>
-        <members>fflib_security_error_field_not_readable</members>
-        <members>fflib_security_error_field_not_updateable</members>
-        <members>fflib_security_error_object_not_deletable</members>
-        <members>fflib_security_error_object_not_insertable</members>
-        <members>fflib_security_error_object_not_readable</members>
-        <members>fflib_security_error_object_not_updateable</members>
-        <name>CustomLabel</name>
-    </types>
-    <types>
-        <members>CustomLabels</members>
-        <name>CustomLabels</name>
-    </types>
-    <types>
         <members>ApexDocsConfig__c</members>
         <members>ClassLink__c</members>
         <members>CodeInfo__c</members>
@@ -112,11 +98,6 @@
     </types>
     <types>
         <members>apexdocs</members>
-        <members>apexdocsbootstrap</members>
-        <members>apexdocsjquery</members>
-        <members>json2</members>
-        <members>jquery_cometd</members>
-        <members>cometd</members>
         <name>StaticResource</name>
     </types>
     <version>39.0</version>

@@ -3,6 +3,7 @@ global class ApexDocsInstallHandler
 {
     global void onInstall(InstallContext context)
     {
+    	ApexDocsService.initializeEnvironment();
         ApexDocsService.reset();
         ApexDocsService.documentAll();
     }

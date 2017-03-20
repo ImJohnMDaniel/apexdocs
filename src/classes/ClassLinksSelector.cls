@@ -39,48 +39,19 @@ public with sharing class ClassLinksSelector
 
     public list<ClassLink__c> selectByLinksNotResolved()
     {
-        String query = string.format('select {0} ' +
-                                       'from {1} ' +
-                                      'where {2} = null ' +
-                                         'or {3} = null ',
-                                    new list<string>{
-                                        getFieldListString(),
-                                        getSObjectName(),
-                                        ClassLink__c.LinksTo__c.getDescribe().getName(),
-                                        ClassLink__c.CoreApexLink__c.getDescribe().getName()
-                                    });
-
-        return (List<ClassLink__c>) Database.query(query);
+    	return Database.query( newQueryFactory().setCondition(ClassLink__c.LinksTo__c + ' = null or ' + ClassLink__c.CoreApexLink__c + ' = null').toSOQL() );
     }
 
     public list<ClassLink__c> selectByLinkTo(final id linkToId)
     {
-        String query = string.format('select {0} ' +
-                                       'from {1} ' +
-                                      'where {2} = :linkToId',
-                                    new list<string>{
-                                        getFieldListString(),
-                                        getSObjectName(),
-                                        ClassLink__c.LinksTo__c.getDescribe().getName()
-                                    });
-
-        return (List<ClassLink__c>) Database.query(query);
+    	return Database.query( newQueryFactory().setCondition(ClassLink__c.LinksTo__c + ' = :linkToId').toSOQL() );
     }
 
     public list<ClassLink__c> selectByApexClassNameParent(final set<string> fileNameSet)
     {
-        String query = string.format('select {0} ' +
-                                       'from {1} ' +
-                                      'where {2} in (select id from {3} where {4} in :fileNameSet)',
-                                    new list<string>{
-                                        getFieldListString(),   // 0
-                                        getSObjectName(),       // 1
-                                        ClassLink__c.CodeInfo__c.getDescribe().getName(),   // 2
-                                        CodeInfo__c.SObjectType.getDescribe().getName(),    // 3
-                                        CodeInfo__c.FileName__c.getDescribe().getName()     // 4
-                                    });
-
-        return (List<ClassLink__c>) Database.query(query);
+    	return Database.query( newQueryFactory()
+    									.setCondition(ClassLink__c.LinksTo__c + ' in (select id from ' + CodeInfo__c.SObjectType
+    									                                                    + ' where ' + CodeInfo__c.FileName__c + ' in :fileNameSet)')
+    									.toSOQL() );
     }
-
 }

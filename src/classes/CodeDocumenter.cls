@@ -940,7 +940,7 @@ public class CodeDocumenter
     {
         set<string> apexFileNames = new set<string>();
 
-        fflib_SObjectUnitOfWork uow = new fflib_SObjectUnitOfWork(SERVICE_SOBJECTS);
+        fflib_ISObjectUnitOfWork uow = Application.UnitOfWork.newInstance();
 
         CodeInfo__c codeInfoRecord = null;
 
@@ -1165,7 +1165,7 @@ public class CodeDocumenter
 
     }
 
-    private void registerClassLinkWithUOW(ClassLink__c classLinkRecord, CodeInfo__c codeInfoRecord, fflib_SObjectUnitOfWork uow)
+    private void registerClassLinkWithUOW(ClassLink__c classLinkRecord, CodeInfo__c codeInfoRecord, fflib_ISObjectUnitOfWork uow)
     {
         //system.debug(existingClassLinkRecordsMap.keyset());
         //system.debug(classLinkRecord);
@@ -1205,7 +1205,7 @@ public class CodeDocumenter
         // convert the class list into a map keyed on the name
         map<string, SObject> classesMap = ApexDocsUtils.generateMapFromField( allClassesThatHaveBeenDocumented, CodeInfo__c.FileName__c.getDescribe().getName());
 
-        fflib_SObjectUnitOfWork uow = new fflib_SObjectUnitOfWork(new list<Schema.SObjectType>{ ClassLink__c.SObjectType } );
+        fflib_ISObjectUnitOfWork uow = Application.UnitOfWork.newInstance();
         // load all of the core link references
         map<string, string> coreLinkReferences = ApexDocsConfigHelper.getSettingsForType(ApexDocsConfigHelper.Type.CORE_APEX_LINKS);
 

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>ScratchBatchExample</members>
+        <name>ApexClass</name>
+    </types>
+    <types>
+        <members>testStreaming</members>
+        <members>scratch</members>
+        <name>ApexPage</name>
+    </types>
+    <types>
+        <members>UnitTestFile_XMLDom</members>
+        <members>UnitTestFile_IAttachmentsSelector</members>
+        <members>UnitTestFile_FooBar</members>
+        <members>UnitTestFile_ClassModel</members>
+        <members>UnitTestFile_ApexModel</members>
+        <name>StaticResource</name>
+    </types>
+    <version>39.0</version>
+</Package>
