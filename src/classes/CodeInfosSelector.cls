@@ -31,12 +31,20 @@ public class CodeInfosSelector
 
     public list<CodeInfo__c> selectById(set<id> idSet)
     {
-        return (list<CodeInfo__c>) selectSObjectsById(idSet);
+        fflib_QueryFactory mainQueryFactory = newQueryFactory().setCondition('id in :idSet');
+
+        mainQueryFactory.getOrderings().clear();
+        mainQueryFactory.addOrdering(CodeInfo__c.FileName__c, fflib_QueryFactory.SortOrder.ASCENDING);
+
+        return Database.query( mainQueryFactory.toSOQL() );
     }
 
     public list<CodeInfo__c> selectByApexClassNameWithClassLinks(set<string> fileNameSet)
     {
     	fflib_QueryFactory mainQueryFactory = newQueryFactory().setCondition(CodeInfo__c.Filename__c + ' in :fileNameSet');
+
+    	mainQueryFactory.getOrderings().clear();
+        mainQueryFactory.addOrdering(CodeInfo__c.FileName__c, fflib_QueryFactory.SortOrder.ASCENDING);
 
 		new ClassLinksSelector().addQueryFactorySubselect( mainQueryFactory );
 
@@ -47,6 +55,11 @@ public class CodeInfosSelector
 
     public list<CodeInfo__c> selectAll()
     {
-    	return Database.query( newQueryFactory().toSOQL() );
+        fflib_QueryFactory mainQueryFactory = newQueryFactory();
+
+        mainQueryFactory.getOrderings().clear();
+        mainQueryFactory.addOrdering(CodeInfo__c.FileName__c, fflib_QueryFactory.SortOrder.ASCENDING);
+
+    	return Database.query( mainQueryFactory.toSOQL() );
     }
 }
