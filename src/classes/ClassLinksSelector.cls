@@ -50,7 +50,7 @@ public with sharing class ClassLinksSelector
     public list<ClassLink__c> selectByApexClassNameParent(final set<string> fileNameSet)
     {
     	return Database.query( newQueryFactory()
-    									.setCondition(ClassLink__c.LinksTo__c + ' in (select id from ' + CodeInfo__c.SObjectType
+    									.setCondition(ClassLink__c.CodeInfo__c + ' in (select id from ' + CodeInfo__c.SObjectType
     									                                                    + ' where ' + CodeInfo__c.FileName__c + ' in :fileNameSet)')
     									.toSOQL() );
     }
