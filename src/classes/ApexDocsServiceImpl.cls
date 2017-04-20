@@ -19,6 +19,7 @@ public with sharing class ApexDocsServiceImpl
 
     }
 
+// TODO: Fix this reference to Attachment
     private IFile assembleModel(final Attachment codeInfoAttachment)
     {
         IFile model = ApexDocModelCompositeTransformer.convertAttachmentToDomainModel( codeInfoAttachment );
@@ -42,9 +43,9 @@ public with sharing class ApexDocsServiceImpl
 
                 String outerClassInfoRecord = outerClassLinkModel.getName();
 
-                list<Attachment> apexDocRelatedAttachments = AttachmentsSelector.newInstance().selectByApexClassNameParent( new set<string>{ outerClassInfoRecord } );
-
-                IFile outerClassModel = ApexDocModelCompositeTransformer.convertAttachmentToDomainModel( apexDocRelatedAttachments[0] );
+//                list<Attachment> apexDocRelatedAttachments = Atta chmentsSelector.newInstance().selectByApexClassNameParent( new set<string>{ outerClassInfoRecord } );
+// TODO: Fix this reference to Attachment
+                IFile outerClassModel = ApexDocModelCompositeTransformer.convertAttachmentToDomainModel( null ) ; //apexDocRelatedAttachments[0] );
 
                 list<ApexClass> outerApexClasses = ApexClassesSelector.newInstance().selectById( new set<id>{ outerClassModel.getApexFileId() } );
 
@@ -210,14 +211,14 @@ public with sharing class ApexDocsServiceImpl
             throw new ApexDocsServiceException('The id must be specified.');
         }
 
-        list<Attachment> apexDocRelatedAttachments = AttachmentsSelector.newInstance().selectByApexClassNameParent( new set<id>{ classId } );
+//        list<Attachment> apexDocRelatedAttachments = Attachm entsSelector.newInstance().selectByApexClassNameParent( new set<id>{ classId } );
 
-        if (apexDocRelatedAttachments == null || apexDocRelatedAttachments.size() == 0)
-        {
-            throw new ApexDocsServiceException('A file could not be found with the id of ['+classId+']');
-        }
-
-        iFile model = assembleModel( apexDocRelatedAttachments[0] );
+//        if (apexDocRelatedAttachments == null || apexDocRelatedAttachments.size() == 0)
+//        {
+//            throw new ApexDocsServiceException('A file could not be found with the id of ['+classId+']');
+//        }
+// TODO: Fix this reference to Attachment
+        iFile model = assembleModel( null ); //apexDocRelatedAttachments[0] );
 
         // Commented out for now.  See comments elsewhere in this class about the verifyModelIsUpToDate(IFile) method
         //verifyModelIsUpToDate(model);
@@ -239,14 +240,14 @@ public with sharing class ApexDocsServiceImpl
             throw new ApexDocsServiceException('The className must be specified.');
         }
 
-        list<Attachment> apexDocRelatedAttachments = AttachmentsSelector.newInstance().selectByApexClassNameParent( new set<string>{ className } );
+//        list<Attachment> apexDocRelatedAttachments = Attach mentsSelector.newInstance().selectByApexClassNameParent( new set<string>{ className } );
 
-        if (apexDocRelatedAttachments == null || apexDocRelatedAttachments.size() == 0)
-        {
-            throw new ApexDocsServiceException('A file could not be found with the name of \''+className+'\'');
-        }
-
-        iFile model = assembleModel( apexDocRelatedAttachments[0] );
+//        if (apexDocRelatedAttachments == null || apexDocRelatedAttachments.size() == 0)
+//        {
+//            throw new ApexDocsServiceException('A file could not be found with the name of \''+className+'\'');
+//        }
+// TODO: Fix this reference to Attachment
+        iFile model = assembleModel( null ); // apexDocRelatedAttachments[0] );
 
         // Commented out for now.  See comments elsewhere in this class about the verifyModelIsUpToDate(IFile) method
         //verifyModelIsUpToDate(model);

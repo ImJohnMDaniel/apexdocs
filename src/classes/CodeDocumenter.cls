@@ -1319,8 +1319,6 @@ public class CodeDocumenter
             clazzNameSet.add(clazz.name);
         }
 
-        delete AttachmentsSelector.newInstance().selectByApexClassNameParent(clazzNameSet);
-
         // now go and start to create new JSON representations of the classes' Object Model
         return System.enqueueJob(new CodeDocumenter( apexClasses, true ));
     }
@@ -1364,9 +1362,6 @@ public class CodeDocumenter
         }
 
         chunksToDocument.add( currentChunk );
-
-
-        delete AttachmentsSelector.newInstance().selectByApexClassNameParent(clazzNameSet);
 
         // now go and start to create new JSON representations of the classes' Object Model
         //Database.executeBatch(new CodeDocumenter(apexClasses, false), 1);

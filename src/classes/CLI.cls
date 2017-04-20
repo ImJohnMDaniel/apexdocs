@@ -78,9 +78,7 @@ global class CLI
 
         try
         {
-            list<Attachment> apexDocRelatedAttachments = AttachmentsSelector.newInstance().selectByApexClassNameParent( new set<string>{ apexClassName } );
-
-            output = apexDocRelatedAttachments[0].body.toString();
+//            output = apexDocRelatedAttachments[0].body.toString();
         }
         catch (Exception e)
         {

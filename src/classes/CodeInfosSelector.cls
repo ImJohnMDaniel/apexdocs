@@ -15,6 +15,7 @@ public class CodeInfosSelector
             CodeInfo__c.Name,
             CodeInfo__c.CreatedDate,
             CodeInfo__c.CreatedById,
+            CodeInfo__c.JSON__c,
             CodeInfo__c.LastModifiedDate,
             CodeInfo__c.LastModifiedById,
             CodeInfo__c.OwnerId,
@@ -47,8 +48,6 @@ public class CodeInfosSelector
         mainQueryFactory.addOrdering(CodeInfo__c.FileName__c, fflib_QueryFactory.SortOrder.ASCENDING);
 
 		new ClassLinksSelector().addQueryFactorySubselect( mainQueryFactory );
-
-		new AttachmentsSelector().addQueryFactorySubselect( mainQueryFactory );
 
     	return Database.query( mainQueryFactory.toSOQL() );
     }

@@ -26,8 +26,8 @@ public class ApexDocModelCompositeTransformer
     public static ClassLink__c createClassLinkRecord(final ClassLinkModel input)
     {
         ClassLink__c classLinkRecord = new ClassLink__c();
+
         classLinkRecord.Type__c = input.getLinkType().name();
-//      classLinkRecord.LinksTo__c = null;
         classLinkRecord.LinksToName__c = input.getName();
         classLinkRecord.CoreApexLink__c = input.getUrl();
 
@@ -82,6 +82,13 @@ public class ApexDocModelCompositeTransformer
 
         return output;
 
+    }
+
+    public static IFile convertJSONStringToDomainModel(final String input)
+    {
+        IFile output = null;
+
+        return output;
     }
 
     public static IFile convertAttachmentToDomainModel(final Attachment input)

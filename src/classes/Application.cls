@@ -5,8 +5,7 @@ public class Application
                     new list<Schema.SObjectType>
                     {
                         CodeInfo__c.SObjectType,
-                        ClassLink__c.SObjectType,
-                        Attachment.SObjectType
+                        ClassLink__c.SObjectType
                     };
 
     // Configure and create the UnitOfWorkFactory for this Application
@@ -26,8 +25,7 @@ public class Application
             new Map<SObjectType, Type> {
                     ApexClass.SObjectType => ApexClassesSelector.class,
                     CodeInfo__c.SObjectType => CodeInfosSelector.class,
-                    ClassLink__c.SObjectType => ClassLinksSelector.class,
-                    Attachment.SObjectType => AttachmentsSelector.class
+                    ClassLink__c.SObjectType => ClassLinksSelector.class
                     });
 
     // Configure and create the DomainFactory for this Application
