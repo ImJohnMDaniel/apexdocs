@@ -84,21 +84,13 @@ public class ApexDocModelCompositeTransformer
 
     }
 
-    public static IFile convertJSONStringToDomainModel(final String input)
-    {
-        IFile output = null;
-
-        return output;
-    }
-
-    public static IFile convertAttachmentToDomainModel(final Attachment input)
+    public static IFile convertJSONStringToDomainModel(final String jsonContent)
     {
         IFile output = null;
 
         try
         {
             // grab the first line of the string in order to determine the Model Type
-            string jsonContent = input.body.toString();
             system.debug(jsonContent);
 
             list<string> headerAndBody = jsonContent.split(HEADER_BODY_SEPARATOR);
@@ -113,9 +105,9 @@ public class ApexDocModelCompositeTransformer
 
             output = (IFile)JSON.deserialize(modelData, modelType);
 
-            output.setId(input.ParentId);
+//            output.setId(input.ParentId);
 
-            output.setCodeInfoAttachmentId(input.id);
+            //output.setCodeInfoAttachmentId(input.id);
         }
         catch (System.SObjectException soe)
         {
@@ -125,28 +117,83 @@ public class ApexDocModelCompositeTransformer
         return output;
     }
 
+//    public static IFile convertAttachmentToDomainModel(final Attachment input)
+//    {
+//        IFile output = null;
+//
+//        try
+//        {
+//            // grab the first line of the string in order to determine the Model Type
+//            string jsonContent = input.body.toString();
+//            system.debug(jsonContent);
+//
+//            list<string> headerAndBody = jsonContent.split(HEADER_BODY_SEPARATOR);
+//            string headerInfo = headerAndBody[0];
+//            system.debug(headerInfo);
+//
+//            map<string, object> headInfoMap = (map<string, object>)JSON.deserializeUntyped(headerInfo);
+//
+//            string modelData = headerAndBody[1];
+//
+//            Type modelType = Type.forName((string)headInfoMap.get(MODEL_TYPE));
+//
+//            output = (IFile)JSON.deserialize(modelData, modelType);
+//
+////            output.setId(input.ParentId);
+//
+////            output.setCodeInfoAttachmentId(input.id);
+//        }
+//        catch (System.SObjectException soe)
+//        {
+//            throw new ApexDocModelCompositeTransformer.ApexDocModelTransformerException('The current Model Type for record id is not the correct type.');
+//        }
+//
+//        return output;
+//    }
+
     private static final string MODEL_TYPE = 'MODEL_TYPE';
     private static final string HEADER_BODY_SEPARATOR = '\n\n\n';
 
-    public static Attachment convertDomainModelToAttachment(final IFile input)
+//    public static Attachment convertDomainModelToAttachment(final IFile input)
+//    {
+//    	string modelType = ((ApexConstructBaseModel)input).getClassType().getName(); 
+//
+//    	map<string, string> headerInfo = new map<string, string>();
+//
+//    	headerInfo.put(MODEL_TYPE, modelType);
+//
+//    	string fullPayload = JSON.serialize(headerInfo) + HEADER_BODY_SEPARATOR + JSON.serialize(input);
+//    	system.debug(fullPayload);
+//
+//    	Attachment attach = new Attachment();
+//        attach.body = Blob.valueOf(fullPayload);
+//        attach.ContentType = 'application/json';
+//        attach.name = ApexDocsUtils.getApexDocsFileName(input.getName());
+//        attach.Description = modelType;
+//
+//    	return attach;
+//    }
+
+    public static String convertDomainModelToJSONString(final IFile input)
     {
-    	string modelType = ((ApexConstructBaseModel)input).getClassType().getName();
+      string modelType = ((ApexConstructBaseModel)input).getClassType().getName(); 
 
-    	map<string, string> headerInfo = new map<string, string>();
+      map<string, string> headerInfo = new map<string, string>();
 
-    	headerInfo.put(MODEL_TYPE, modelType);
+      headerInfo.put(MODEL_TYPE, modelType);
 
-    	string fullPayload = JSON.serialize(headerInfo) + HEADER_BODY_SEPARATOR + JSON.serialize(input);
-    	system.debug(fullPayload);
+      string fullPayload = JSON.serialize(headerInfo) + HEADER_BODY_SEPARATOR + JSON.serialize(input);
+      system.debug(fullPayload);
 
-    	Attachment attach = new Attachment();
-        attach.body = Blob.valueOf(fullPayload);
-        attach.ContentType = 'application/json';
-        attach.name = ApexDocsUtils.getApexDocsFileName(input.getName());
-        attach.Description = modelType;
+//      Attachment attach = new Attachment();
+//        attach.body = Blob.valueOf(fullPayload);
+//        attach.ContentType = 'application/json';
+//        attach.name = ApexDocsUtils.getApexDocsFileName(input.getName());
+//        attach.Description = modelType;
 
-    	return attach;
+      return fullPayload;
     }
+
 
     public static CodeInfo__c convertDomainModelToSObject(final IFile input)
     {
@@ -172,6 +219,8 @@ public class ApexDocModelCompositeTransformer
         }
 
         output.ApexClassId__c = input.getApexFileId();
+        
+        output.JSON__c = convertDomainModelToJSONString( input );
 
         return output;
     }

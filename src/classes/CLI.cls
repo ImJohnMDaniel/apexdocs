@@ -78,7 +78,7 @@ global class CLI
 
         try
         {
-//            output = apexDocRelatedAttachments[0].body.toString();
+            output = CodeInfosSelector.newInstance().selectByApexClassName( new set<String>{ apexClassName } )[0].JSON__c;
         }
         catch (Exception e)
         {

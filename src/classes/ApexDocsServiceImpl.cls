@@ -19,10 +19,14 @@ public with sharing class ApexDocsServiceImpl
 
     }
 
-// TODO: Fix this reference to Attachment
-    private IFile assembleModel(final Attachment codeInfoAttachment)
+// TODO: Most likely, the method signature here should be IFile assembleModel( final CodeInfo__c codeInfo ) .... because all info required now resides on the CodeInfo object.
+//          This would change the ApexDocModelCompositeTransformer.convert**ToDomainModel() signature as well.
+    //private IFile assembleModel(final Attachment codeInfoAttachment)
+    private IFile assembleModel(final string codeInfoJson)
     {
-        IFile model = ApexDocModelCompositeTransformer.convertAttachmentToDomainModel( codeInfoAttachment );
+        //IFile model = ApexDocModelCompositeTransformer.convertAttachmentToDomainModel( codeInfoAttachment );
+        
+        IFile model = ApexDocModelCompositeTransformer.convertJSONStringToDomainModel( codeInfoJson );
 
         list<ClassLink__c> classLinkRecords = ClassLinksSelector.newInstance().selectByApexClassNameParent( new set<string>{ model.getName() } );
 
@@ -43,9 +47,11 @@ public with sharing class ApexDocsServiceImpl
 
                 String outerClassInfoRecord = outerClassLinkModel.getName();
 
-//                list<Attachment> apexDocRelatedAttachments = Atta chmentsSelector.newInstance().selectByApexClassNameParent( new set<string>{ outerClassInfoRecord } );
-// TODO: Fix this reference to Attachment
-                IFile outerClassModel = ApexDocModelCompositeTransformer.convertAttachmentToDomainModel( null ) ; //apexDocRelatedAttachments[0] );
+                //list<Attachment> apexDocRelatedAttachments = Atta chmentsSelector.newInstance().selectByApexClassNameParent( new set<string>{ outerClassInfoRecord } );
+                //IFile outerClassModel = ApexDocModelCompositeTransformer.convertAttachmentToDomainModel( apexDocRelatedAttachments[0] );
+                list<CodeInfo__c> codeInfos = CodeInfosSelector.newInstance().selectByApexClassName( new set<string>{ outerClassInfoRecord } );
+    
+                IFile outerClassModel = ApexDocModelCompositeTransformer.convertJSONStringToDomainModel( codeInfos[0].JSON__c );
 
                 list<ApexClass> outerApexClasses = ApexClassesSelector.newInstance().selectById( new set<id>{ outerClassModel.getApexFileId() } );
 
@@ -319,12 +325,13 @@ public with sharing class ApexDocsServiceImpl
 
     public void documentAll()
     {
-    	CodeDocumenter.documentApexFiles(ApexClassesSelector.newInstance().selectAll());
+//      CodeDocumenter.documentApexFiles(ApexClassesSelector.newInstance().selectAll());
     }
 
     public IFile document(final ApexClass clazz)
     {
-        return CodeDocumenter.documentApexFile( clazz );
+//        return CodeDocumenter.documentApexFile( clazz );
+        return null;
     }
 
     public IFile document(final IFile model)
@@ -335,7 +342,7 @@ public with sharing class ApexDocsServiceImpl
 
         if ( ! classes.isEmpty() )
         {
-            outputModel = CodeDocumenter.documentApexFile( classes[0] );
+//            outputModel = CodeDocumenter.documentApexFile( classes[0] );
         }
 
     	return outputModel;

@@ -1016,10 +1016,11 @@ public class CodeDocumenter
                 }
 
                 // convert the entire model into an Attachment record and register it to the parent CodeInfo__c record.
-                uow.registerNew( ApexDocModelCompositeTransformer.convertDomainModelToAttachment(fileModel)
-                                , Attachment.ParentId
-                                , codeInfoRecord
-                                );
+// TODO: Change this as needed.
+//                uow.registerNew( ApexDocModelCompositeTransformer.convertDomainModelToAttachment(fileModel)
+//                                , Attachment.ParentId
+//                                , codeInfoRecord
+//                                );
 
 
                 // Start finding any related ClassLinks
