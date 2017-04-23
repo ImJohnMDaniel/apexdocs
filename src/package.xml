@@ -89,6 +89,7 @@
     </types>
     <types>
         <members>ApexDocs</members>
+        <members>CodeInfo__c</members>
         <name>CustomTab</name>
     </types>
     <types>

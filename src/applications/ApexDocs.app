@@ -5,4 +5,5 @@
     <formFactors>Large</formFactors>
     <label>Apex Docs</label>
     <tab>ApexDocs</tab>
+    <tab>CodeInfo__c</tab>
 </CustomApplication>
