@@ -78,7 +78,7 @@ global class CLI
 
         try
         {
-            output = CodeInfosSelector.newInstance().selectByApexClassName( new set<String>{ apexClassName } )[0].JSON__c;
+            output = CodeInfosSelector.newInstance().selectByApexClassName( new set<String>{ apexClassName } )[0].ModelJSON__c;
         }
         catch (Exception e)
         {

@@ -61,7 +61,7 @@ public class ApexDocModelCompositeTransformer
             {
                 Type modelType = Type.forName( input.ModelType__c );
     
-                output = (IFile)JSON.deserialize( input.Json__c, modelType );
+                output = (IFile)JSON.deserialize( input.ModelJSON__c, modelType );
     
                 output.setId(input.id);
             }
@@ -93,7 +93,7 @@ public class ApexDocModelCompositeTransformer
         
         if ( input instanceOf ApexConstructBaseModel )
         {
-            output.JSON__c = JSON.serialize( (ApexConstructBaseModel)input );
+            output.ModelJSON__c = JSON.serialize( (ApexConstructBaseModel)input );
         }
 
         return output;

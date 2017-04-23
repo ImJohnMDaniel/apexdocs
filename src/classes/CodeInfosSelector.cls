@@ -15,13 +15,13 @@ public class CodeInfosSelector
             CodeInfo__c.Name,
             CodeInfo__c.CreatedDate,
             CodeInfo__c.CreatedById,
-            CodeInfo__c.JSON__c,
             CodeInfo__c.LastModifiedDate,
             CodeInfo__c.LastModifiedById,
             CodeInfo__c.OwnerId,
-            CodeInfo__c.ModelType__c,
             CodeInfo__c.ApexClassId__c,
-            CodeInfo__c.FileName__c
+            CodeInfo__c.FileName__c,
+            CodeInfo__c.ModelJSON__c,
+            CodeInfo__c.ModelType__c
         };
     }
 
