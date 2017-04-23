@@ -9,7 +9,6 @@ public class NestedClassModel
 {
 	private id apexFileId;
     private id codeInfoId;
-    private id codeInfoAttachmentId;
 
     private boolean isModelCurrent = false;
     private ClassLinkModel extendsClass = null;
@@ -72,11 +71,6 @@ public class NestedClassModel
         {
             return '';
         }
-    }
-
-    public id getCodeInfoAttachmentId()
-    {
-        return this.codeInfoAttachmentId;
     }
 
     public list<ConstructorModel> getConstructors()
@@ -188,11 +182,6 @@ public class NestedClassModel
     public void setAuthor(final list<string> authors)
     {
         this.authors = authors;
-    }
-
-    public void setCodeInfoAttachmentId(final id codeInfoAttachmentId)
-    {
-        this.codeInfoAttachmentId = codeInfoAttachmentId;
     }
 
     public void setConstructors(final list<ConstructorModel> constructors)

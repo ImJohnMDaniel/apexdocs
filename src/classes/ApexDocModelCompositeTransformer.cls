@@ -1,16 +1,8 @@
 public class ApexDocModelCompositeTransformer
 {
-/*
-    // TODO: Need to change the param "theType" to something more "type safe" than just a string.
-    private static CodeInfoExtra__c createCodeInfoExtraRecord(final string theType, final string value)
-    {
-        CodeInfoExtra__c codeInfoExtraRecord = new CodeInfoExtra__c();
-        codeInfoExtraRecord.Type__c = theType;
-        codeInfoExtraRecord.Value__c = value;
-        system.debug('codeInfoExtraRecord == '+codeInfoExtraRecord);
-        return codeInfoExtraRecord;
-    }
-*/
+    private static final string MODEL_TYPE = 'MODEL_TYPE';
+    private static final string HEADER_BODY_SEPARATOR = '\n\n\n';
+
     public static ClassLinkModel createClassLinkModel(final ClassLink__c input)
     {
         ClassLinkModel output = new ClassLinkModel(ClassLinkModel.getTypeByName(input.Type__c), input.linksToName__c);
@@ -66,132 +58,52 @@ public class ApexDocModelCompositeTransformer
     {
         IFile output = null;
 
-        try
+        if ( input != null )
         {
-            Type theModelType = Type.forName(input.ModelType__c);
-
-            //output = (IFile)JSON.deserialize(input.AggregateInfo__c, theModelType);
-        }
-        catch (System.SObjectException soe)
-        {
-            throw new ApexDocModelCompositeTransformer.ApexDocModelTransformerException('The current Model Type for record id is not the correct type.');
-        }
-
-        //output.setName(input.filename__c);
-        //output.setApexFileId(input.ApexClassId__c);
-
-        return output;
-
-    }
-
-    public static IFile convertJSONStringToDomainModel(final String jsonContent)
-    {
-        IFile output = null;
-
-        try
-        {
-            // grab the first line of the string in order to determine the Model Type
-            system.debug(jsonContent);
-
-            list<string> headerAndBody = jsonContent.split(HEADER_BODY_SEPARATOR);
-            string headerInfo = headerAndBody[0];
-            system.debug(headerInfo);
-
-            map<string, object> headInfoMap = (map<string, object>)JSON.deserializeUntyped(headerInfo);
-
-            string modelData = headerAndBody[1];
-
-            Type modelType = Type.forName((string)headInfoMap.get(MODEL_TYPE));
-
-            output = (IFile)JSON.deserialize(modelData, modelType);
-
-//            output.setId(input.ParentId);
-
-            //output.setCodeInfoAttachmentId(input.id);
-        }
-        catch (System.SObjectException soe)
-        {
-            throw new ApexDocModelCompositeTransformer.ApexDocModelTransformerException('The current Model Type for record id is not the correct type.');
+            try
+            {
+                String jsonContent = input.Json__c;
+                
+                // grab the first line of the string in order to determine the Model Type
+                system.debug(jsonContent);
+    
+                list<string> headerAndBody = jsonContent.split(HEADER_BODY_SEPARATOR);
+                string headerInfo = headerAndBody[0];
+                system.debug(headerInfo);
+    
+                map<string, object> headInfoMap = (map<string, object>)JSON.deserializeUntyped(headerInfo);
+    
+                string modelData = headerAndBody[1];
+    
+                Type modelType = Type.forName((string)headInfoMap.get(MODEL_TYPE));
+    
+                output = (IFile)JSON.deserialize(modelData, modelType);
+    
+                output.setId(input.id);
+            }
+            catch (System.SObjectException soe)
+            {
+                throw new ApexDocModelCompositeTransformer.ApexDocModelTransformerException('The current Model Type for record id is not the correct type.');
+            }            
         }
 
         return output;
     }
 
-//    public static IFile convertAttachmentToDomainModel(final Attachment input)
-//    {
-//        IFile output = null;
-//
-//        try
-//        {
-//            // grab the first line of the string in order to determine the Model Type
-//            string jsonContent = input.body.toString();
-//            system.debug(jsonContent);
-//
-//            list<string> headerAndBody = jsonContent.split(HEADER_BODY_SEPARATOR);
-//            string headerInfo = headerAndBody[0];
-//            system.debug(headerInfo);
-//
-//            map<string, object> headInfoMap = (map<string, object>)JSON.deserializeUntyped(headerInfo);
-//
-//            string modelData = headerAndBody[1];
-//
-//            Type modelType = Type.forName((string)headInfoMap.get(MODEL_TYPE));
-//
-//            output = (IFile)JSON.deserialize(modelData, modelType);
-//
-////            output.setId(input.ParentId);
-//
-////            output.setCodeInfoAttachmentId(input.id);
-//        }
-//        catch (System.SObjectException soe)
-//        {
-//            throw new ApexDocModelCompositeTransformer.ApexDocModelTransformerException('The current Model Type for record id is not the correct type.');
-//        }
-//
-//        return output;
-//    }
-
-    private static final string MODEL_TYPE = 'MODEL_TYPE';
-    private static final string HEADER_BODY_SEPARATOR = '\n\n\n';
-
-//    public static Attachment convertDomainModelToAttachment(final IFile input)
-//    {
-//    	string modelType = ((ApexConstructBaseModel)input).getClassType().getName(); 
-//
-//    	map<string, string> headerInfo = new map<string, string>();
-//
-//    	headerInfo.put(MODEL_TYPE, modelType);
-//
-//    	string fullPayload = JSON.serialize(headerInfo) + HEADER_BODY_SEPARATOR + JSON.serialize(input);
-//    	system.debug(fullPayload);
-//
-//    	Attachment attach = new Attachment();
-//        attach.body = Blob.valueOf(fullPayload);
-//        attach.ContentType = 'application/json';
-//        attach.name = ApexDocsUtils.getApexDocsFileName(input.getName());
-//        attach.Description = modelType;
-//
-//    	return attach;
-//    }
-
-    public static String convertDomainModelToJSONString(final IFile input)
+    private static String convertDomainModelToJSONString(final ApexConstructBaseModel input)
     {
-      string modelType = ((ApexConstructBaseModel)input).getClassType().getName(); 
+        system.debug( input );
+        //string modelType = ((ApexConstructBaseModel)input).getClassType().getName();
+        string modelType = input.getClassType().getName();
 
-      map<string, string> headerInfo = new map<string, string>();
+        map<string, string> headerInfo = new map<string, string>();
 
-      headerInfo.put(MODEL_TYPE, modelType);
+        headerInfo.put(MODEL_TYPE, modelType);
 
-      string fullPayload = JSON.serialize(headerInfo) + HEADER_BODY_SEPARATOR + JSON.serialize(input);
-      system.debug(fullPayload);
+        string fullPayload = JSON.serialize(headerInfo) + HEADER_BODY_SEPARATOR + JSON.serialize(input);
+        system.debug(fullPayload);
 
-//      Attachment attach = new Attachment();
-//        attach.body = Blob.valueOf(fullPayload);
-//        attach.ContentType = 'application/json';
-//        attach.name = ApexDocsUtils.getApexDocsFileName(input.getName());
-//        attach.Description = modelType;
-
-      return fullPayload;
+        return fullPayload;
     }
 
 
@@ -199,15 +111,7 @@ public class ApexDocModelCompositeTransformer
     {
         CodeInfo__c output = new CodeInfo__c();
 
-//        if (input instanceOf IOuterClassible)
-//        {
-//            // account for the outer class name
-//            output.filename__c = ((IOuterClassible)input).getOuterClass().getName() + '.' + input.getName();
-//        }
-//        else
-//        {
-            output.filename__c = input.getName();
-//        }
+        output.filename__c = input.getName();
 
         if (input instanceOf FileModel)
         {
@@ -220,7 +124,10 @@ public class ApexDocModelCompositeTransformer
 
         output.ApexClassId__c = input.getApexFileId();
         
-        output.JSON__c = convertDomainModelToJSONString( input );
+        if ( input instanceOf ApexConstructBaseModel )
+        {
+            output.JSON__c = convertDomainModelToJSONString( (ApexConstructBaseModel)input );
+        }
 
         return output;
     }
@@ -231,6 +138,4 @@ public class ApexDocModelCompositeTransformer
      *  @since 1.0
      */
     public class ApexDocModelTransformerException extends Exception {}
-
-
 }

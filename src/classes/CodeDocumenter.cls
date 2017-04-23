@@ -29,8 +29,7 @@ public class CodeDocumenter
                     new list<Schema.SObjectType>
                     {
                         CodeInfo__c.SObjectType,
-                        ClassLink__c.SObjectType,
-                        Attachment.SObjectType
+                        ClassLink__c.SObjectType
                     };
 
     private static string EXTENDS_KEYWORD_STRING = ' extends ';
@@ -108,7 +107,9 @@ public class CodeDocumenter
                     )
                 )
             {
+                // The class will be processed in a later thread
                 classesToProcessInSeparateThread.add(clazz);
+                // and a place holder will be temporaily setup.
                 models.add(new FileModel(null, clazz.name, FileModel.class, clazz.id));
             }
             else
@@ -998,9 +999,6 @@ public class CodeDocumenter
                     // This record already exists
                     codeInfoRecord.id = existingCodeInfoRecordsMap.get(codeInfoRecord.FileName__c).id;
                     uow.registerDirty( codeInfoRecord );
-
-                    // Remove any previous json representations of the fileModel
-                    uow.registerDeleted( existingCodeInfoRecordsMap.get(codeInfoRecord.FileName__c).Attachments );
                 }
                 else
                 {
@@ -1014,14 +1012,6 @@ public class CodeDocumenter
                     // It is most likely the case that the model is being processed but under a different execution context.
                     continue;
                 }
-
-                // convert the entire model into an Attachment record and register it to the parent CodeInfo__c record.
-// TODO: Change this as needed.
-//                uow.registerNew( ApexDocModelCompositeTransformer.convertDomainModelToAttachment(fileModel)
-//                                , Attachment.ParentId
-//                                , codeInfoRecord
-//                                );
-
 
                 // Start finding any related ClassLinks
                 // Is there a ClassLink for an extensible?

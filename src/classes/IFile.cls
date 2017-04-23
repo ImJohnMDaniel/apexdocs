@@ -50,16 +50,4 @@ public interface IFile
      *  Setter method for the isModelCurrent value
      */
     void setIsModelCurrent(final boolean isModelCurrent);
-
-    /**
-     *  @return the Id for the Attachment file that contains the JSON representation of the class
-     */
-    id getCodeInfoAttachmentId();
-
-    /**
-     *  Setter method for the Id of the Attachment file that contains the JSON representation of the class
-     */
-    void setCodeInfoAttachmentId(final id codeInfoAttachmentId);
-
-
 }

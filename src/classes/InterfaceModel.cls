@@ -17,7 +17,6 @@ public class InterfaceModel extends ApexConstructBaseModel
 
     private id apexFileId;
     private id codeInfoId;
-    private id codeInfoAttachmentId;
 
     private string apexFileLastModifiedByName;
     private id apexFileLastModifiedById;
@@ -39,11 +38,6 @@ public class InterfaceModel extends ApexConstructBaseModel
     public list<string> getAuthors()
     {
         return this.authors;
-    }
-
-    public id getCodeInfoAttachmentId()
-    {
-        return this.codeInfoAttachmentId;
     }
 
     public ClassLinkModel getExtends()
@@ -141,11 +135,6 @@ public class InterfaceModel extends ApexConstructBaseModel
     public void setAuthor(final list<string> authors)
     {
         this.authors = authors;
-    }
-
-    public void setCodeInfoAttachmentId(final id codeInfoAttachmentId)
-    {
-        this.codeInfoAttachmentId = codeInfoAttachmentId;
     }
 
     public void setExtends(final ClassLinkModel extendsInterface)
