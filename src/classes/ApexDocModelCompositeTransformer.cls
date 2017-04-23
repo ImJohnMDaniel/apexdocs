@@ -1,8 +1,5 @@
 public class ApexDocModelCompositeTransformer
 {
-    private static final string MODEL_TYPE = 'MODEL_TYPE';
-    private static final string HEADER_BODY_SEPARATOR = '\n\n\n';
-
     public static ClassLinkModel createClassLinkModel(final ClassLink__c input)
     {
         ClassLinkModel output = new ClassLinkModel(ClassLinkModel.getTypeByName(input.Type__c), input.linksToName__c);
@@ -62,22 +59,9 @@ public class ApexDocModelCompositeTransformer
         {
             try
             {
-                String jsonContent = input.Json__c;
-                
-                // grab the first line of the string in order to determine the Model Type
-                system.debug(jsonContent);
+                Type modelType = Type.forName( input.ModelType__c );
     
-                list<string> headerAndBody = jsonContent.split(HEADER_BODY_SEPARATOR);
-                string headerInfo = headerAndBody[0];
-                system.debug(headerInfo);
-    
-                map<string, object> headInfoMap = (map<string, object>)JSON.deserializeUntyped(headerInfo);
-    
-                string modelData = headerAndBody[1];
-    
-                Type modelType = Type.forName((string)headInfoMap.get(MODEL_TYPE));
-    
-                output = (IFile)JSON.deserialize(modelData, modelType);
+                output = (IFile)JSON.deserialize( input.Json__c, modelType );
     
                 output.setId(input.id);
             }
@@ -89,23 +73,6 @@ public class ApexDocModelCompositeTransformer
 
         return output;
     }
-
-    private static String convertDomainModelToJSONString(final ApexConstructBaseModel input)
-    {
-        system.debug( input );
-        //string modelType = ((ApexConstructBaseModel)input).getClassType().getName();
-        string modelType = input.getClassType().getName();
-
-        map<string, string> headerInfo = new map<string, string>();
-
-        headerInfo.put(MODEL_TYPE, modelType);
-
-        string fullPayload = JSON.serialize(headerInfo) + HEADER_BODY_SEPARATOR + JSON.serialize(input);
-        system.debug(fullPayload);
-
-        return fullPayload;
-    }
-
 
     public static CodeInfo__c convertDomainModelToSObject(final IFile input)
     {
@@ -126,7 +93,7 @@ public class ApexDocModelCompositeTransformer
         
         if ( input instanceOf ApexConstructBaseModel )
         {
-            output.JSON__c = convertDomainModelToJSONString( (ApexConstructBaseModel)input );
+            output.JSON__c = JSON.serialize( (ApexConstructBaseModel)input );
         }
 
         return output;
