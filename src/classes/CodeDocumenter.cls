@@ -29,8 +29,7 @@ public class CodeDocumenter
                     new list<Schema.SObjectType>
                     {
                         CodeInfo__c.SObjectType,
-                        ClassLink__c.SObjectType,
-                        Attachment.SObjectType
+                        ClassLink__c.SObjectType
                     };
 
     private static string EXTENDS_KEYWORD_STRING = ' extends ';
@@ -108,7 +107,9 @@ public class CodeDocumenter
                     )
                 )
             {
+                // The class will be processed in a later thread
                 classesToProcessInSeparateThread.add(clazz);
+                // and a place holder will be temporaily setup.
                 models.add(new FileModel(null, clazz.name, FileModel.class, clazz.id));
             }
             else
@@ -998,9 +999,6 @@ public class CodeDocumenter
                     // This record already exists
                     codeInfoRecord.id = existingCodeInfoRecordsMap.get(codeInfoRecord.FileName__c).id;
                     uow.registerDirty( codeInfoRecord );
-
-                    // Remove any previous json representations of the fileModel
-                    uow.registerDeleted( existingCodeInfoRecordsMap.get(codeInfoRecord.FileName__c).Attachments );
                 }
                 else
                 {
@@ -1014,13 +1012,6 @@ public class CodeDocumenter
                     // It is most likely the case that the model is being processed but under a different execution context.
                     continue;
                 }
-
-                // convert the entire model into an Attachment record and register it to the parent CodeInfo__c record.
-                uow.registerNew( ApexDocModelCompositeTransformer.convertDomainModelToAttachment(fileModel)
-                                , Attachment.ParentId
-                                , codeInfoRecord
-                                );
-
 
                 // Start finding any related ClassLinks
                 // Is there a ClassLink for an extensible?
@@ -1319,8 +1310,6 @@ public class CodeDocumenter
             clazzNameSet.add(clazz.name);
         }
 
-        delete AttachmentsSelector.newInstance().selectByApexClassNameParent(clazzNameSet);
-
         // now go and start to create new JSON representations of the classes' Object Model
         return System.enqueueJob(new CodeDocumenter( apexClasses, true ));
     }
@@ -1364,9 +1353,6 @@ public class CodeDocumenter
         }
 
         chunksToDocument.add( currentChunk );
-
-
-        delete AttachmentsSelector.newInstance().selectByApexClassNameParent(clazzNameSet);
 
         // now go and start to create new JSON representations of the classes' Object Model
         //Database.executeBatch(new CodeDocumenter(apexClasses, false), 1);

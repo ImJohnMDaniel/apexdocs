@@ -6,7 +6,6 @@ public class ApexDocsTestHelper
         UnitTestFile_ApexModel,
         UnitTestFile_ClassModel,
         UnitTestFile_FooBar,
-        UnitTestFile_IAttachmentsSelector,
         UnitTestFile_XMLDom
     }
 

@@ -19,9 +19,9 @@ public with sharing class ApexDocsServiceImpl
 
     }
 
-    private IFile assembleModel(final Attachment codeInfoAttachment)
+    private IFile assembleModel( final CodeInfo__c codeInfo )
     {
-        IFile model = ApexDocModelCompositeTransformer.convertAttachmentToDomainModel( codeInfoAttachment );
+        IFile model = ApexDocModelCompositeTransformer.convertSObjectToDomainModel( codeInfo );
 
         list<ClassLink__c> classLinkRecords = ClassLinksSelector.newInstance().selectByApexClassNameParent( new set<string>{ model.getName() } );
 
@@ -42,9 +42,9 @@ public with sharing class ApexDocsServiceImpl
 
                 String outerClassInfoRecord = outerClassLinkModel.getName();
 
-                list<Attachment> apexDocRelatedAttachments = AttachmentsSelector.newInstance().selectByApexClassNameParent( new set<string>{ outerClassInfoRecord } );
-
-                IFile outerClassModel = ApexDocModelCompositeTransformer.convertAttachmentToDomainModel( apexDocRelatedAttachments[0] );
+                list<CodeInfo__c> codeInfos = CodeInfosSelector.newInstance().selectByApexClassName( new set<string>{ outerClassInfoRecord } );
+    
+                IFile outerClassModel = ApexDocModelCompositeTransformer.convertSObjectToDomainModel( codeInfos[0] );
 
                 list<ApexClass> outerApexClasses = ApexClassesSelector.newInstance().selectById( new set<id>{ outerClassModel.getApexFileId() } );
 
@@ -135,7 +135,6 @@ public with sharing class ApexDocsServiceImpl
             {
                 ((IInnerClasses)model).getInnerClasses().add( ApexDocModelCompositeTransformer.createClassLinkModel( classLinkRecord ) );
             }
-
         }
 
         if (model instanceOf IMethods
@@ -210,14 +209,9 @@ public with sharing class ApexDocsServiceImpl
             throw new ApexDocsServiceException('The id must be specified.');
         }
 
-        list<Attachment> apexDocRelatedAttachments = AttachmentsSelector.newInstance().selectByApexClassNameParent( new set<id>{ classId } );
+        list<CodeInfo__c> codeInfos = CodeInfosSelector.newInstance().selectById( new set<Id>{ classId } );
 
-        if (apexDocRelatedAttachments == null || apexDocRelatedAttachments.size() == 0)
-        {
-            throw new ApexDocsServiceException('A file could not be found with the id of ['+classId+']');
-        }
-
-        iFile model = assembleModel( apexDocRelatedAttachments[0] );
+        iFile model = assembleModel( codeInfos[0] );
 
         // Commented out for now.  See comments elsewhere in this class about the verifyModelIsUpToDate(IFile) method
         //verifyModelIsUpToDate(model);
@@ -239,14 +233,9 @@ public with sharing class ApexDocsServiceImpl
             throw new ApexDocsServiceException('The className must be specified.');
         }
 
-        list<Attachment> apexDocRelatedAttachments = AttachmentsSelector.newInstance().selectByApexClassNameParent( new set<string>{ className } );
+        list<CodeInfo__c> codeInfos = CodeInfosSelector.newInstance().selectByApexClassName( new set<String>{ className } );
 
-        if (apexDocRelatedAttachments == null || apexDocRelatedAttachments.size() == 0)
-        {
-            throw new ApexDocsServiceException('A file could not be found with the name of \''+className+'\'');
-        }
-
-        iFile model = assembleModel( apexDocRelatedAttachments[0] );
+        iFile model = assembleModel( codeInfos[0] );
 
         // Commented out for now.  See comments elsewhere in this class about the verifyModelIsUpToDate(IFile) method
         //verifyModelIsUpToDate(model);
@@ -318,7 +307,7 @@ public with sharing class ApexDocsServiceImpl
 
     public void documentAll()
     {
-    	CodeDocumenter.documentApexFiles(ApexClassesSelector.newInstance().selectAll());
+        CodeDocumenter.documentApexFiles(ApexClassesSelector.newInstance().selectAll());
     }
 
     public IFile document(final ApexClass clazz)

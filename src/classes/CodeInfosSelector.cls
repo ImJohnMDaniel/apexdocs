@@ -18,9 +18,10 @@ public class CodeInfosSelector
             CodeInfo__c.LastModifiedDate,
             CodeInfo__c.LastModifiedById,
             CodeInfo__c.OwnerId,
-            CodeInfo__c.ModelType__c,
             CodeInfo__c.ApexClassId__c,
-            CodeInfo__c.FileName__c
+            CodeInfo__c.FileName__c,
+            CodeInfo__c.ModelJSON__c,
+            CodeInfo__c.ModelType__c
         };
     }
 
@@ -39,6 +40,16 @@ public class CodeInfosSelector
         return Database.query( mainQueryFactory.toSOQL() );
     }
 
+    public list<CodeInfo__c> selectByApexClassName(set<string> fileNameSet)
+    {
+        fflib_QueryFactory mainQueryFactory = newQueryFactory().setCondition(CodeInfo__c.Filename__c + ' in :fileNameSet');
+
+        mainQueryFactory.getOrderings().clear();
+        mainQueryFactory.addOrdering(CodeInfo__c.FileName__c, fflib_QueryFactory.SortOrder.ASCENDING);
+
+        return Database.query( mainQueryFactory.toSOQL() );
+    }
+
     public list<CodeInfo__c> selectByApexClassNameWithClassLinks(set<string> fileNameSet)
     {
     	fflib_QueryFactory mainQueryFactory = newQueryFactory().setCondition(CodeInfo__c.Filename__c + ' in :fileNameSet');
@@ -47,8 +58,6 @@ public class CodeInfosSelector
         mainQueryFactory.addOrdering(CodeInfo__c.FileName__c, fflib_QueryFactory.SortOrder.ASCENDING);
 
 		new ClassLinksSelector().addQueryFactorySubselect( mainQueryFactory );
-
-		new AttachmentsSelector().addQueryFactorySubselect( mainQueryFactory );
 
     	return Database.query( mainQueryFactory.toSOQL() );
     }

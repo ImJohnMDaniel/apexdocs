@@ -172,36 +172,6 @@ public with sharing class FileViewController
     {
         string nameParam = (string) ApexPages.currentPage().getParameters().get(PARAM_NAME);
 
-        if ( string.isBlank(nameParam) )
-        {
-            string idParam = (string) ApexPages.currentPage().getParameters().get(PARAM_ID);
-
-            if ( string.isNotBlank(idParam) )
-            {
-                initialize( id.valueOf(idParam) );
-            }
-        }
-        else
-        {
-            initialize(nameParam);
-        }
-
-        system.debug('model == '+model);
-
-        if ( model != null && string.isNotBlank( ((IFile)model).getId() ) )
-        {
-            if ( ((IFile)model).getIsInterface() )
-            {
-                knownImplementors.addAll( ApexDocsService.findKnownImplementorsForFile((IFile)model) );
-            }
-            knownSubClasses.addAll( ApexDocsService.findKnownSubClassesForFile((IFile)model) );
-        }
-    }
-
-    public FileViewController(ApexPages.StandardController stdController)
-    {
-        string nameParam = (string) ApexPages.currentPage().getParameters().get(PARAM_NAME);
-
         system.debug('nameParam == '+nameParam);
 
         if ( string.isBlank(nameParam) )
@@ -237,6 +207,11 @@ public with sharing class FileViewController
         }
     }
 
+    public FileViewController(ApexPages.StandardController stdController)
+    {
+        this();
+    }
+
     public list<ClassLinkModel> knownSubClasses { get; private set; } { knownSubClasses = new list<ClassLinkModel>(); }
     public list<ClassLinkModel> knownImplementors { get; private set; } { knownImplementors = new list<ClassLinkModel>(); }
     public list<ClassLinkModel> knownThrowersOfException { get; private set; } { knownThrowersOfException = new list<ClassLinkModel>(); }
@@ -250,7 +225,6 @@ public with sharing class FileViewController
 
         nextPage.getParameters().put(PARAM_NAME, ((IFile)model).getName() );
         nextPage.getParameters().put(PARAM_CODE_INFO_REFRESH, 'true' );
-//        nextPage.setRedirect(true);
 
         return nextPage;
     }

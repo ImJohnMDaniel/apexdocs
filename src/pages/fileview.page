@@ -594,7 +594,10 @@
                 </apex:outputPanel>
 
                 <div class="codeInfoFooter">
+<!--
+TODO: Find the equivalent of this call. 
                     <apex:outputLink value="{!URLFOR($Action.Attachment.Download, fileable.codeInfoAttachmentId)}" target="_blank" rendered="{! fileable != null }">Click here to download the JSON representation for {! apexModelable.name }</apex:outputLink>
+ -->
                 </div>
             </div>
         </apex:outputPanel>

@@ -13,7 +13,6 @@ public class ClassModel extends ApexConstructBaseModel
 {
 	private id apexFileId;
     private id codeInfoId;
-    private id codeInfoAttachmentId;
 
     private string apexFileLastModifiedByName;
     private id apexFileLastModifiedById;
@@ -31,7 +30,6 @@ public class ClassModel extends ApexConstructBaseModel
     private list<ClassLinkModel> innerClasses = new list<ClassLinkModel>();
     private list<string> authors = new list<string>();
     private list<ClassLinkModel> interfacesImplemented = new list<ClassLinkModel>();
-
 
     public void declareThisAUnitTestClass()
     {
@@ -101,11 +99,6 @@ public class ClassModel extends ApexConstructBaseModel
         return ClassModel.class;
     }
 
-    public id getCodeInfoAttachmentId()
-    {
-        return this.codeInfoAttachmentId;
-    }
-
     public list<ConstructorModel> getConstructors()
     {
         return this.constructors;
@@ -131,7 +124,6 @@ public class ClassModel extends ApexConstructBaseModel
     {
     	return this.innerClasses;
     }
-
 
     public list<ClassLinkModel> getInterfacesImplemented()
     {
@@ -177,7 +169,6 @@ public class ClassModel extends ApexConstructBaseModel
         string nameLine = getNameLine();
 
         if (nameLine != null) nameLine = nameLine.trim();
-        //system.debug('@@ File Name = ' + nameLine);
 
         if(nameLine != null && nameLine.trim().length() > 0 )
         {
@@ -217,7 +208,6 @@ public class ClassModel extends ApexConstructBaseModel
     {
         return this.isModelCurrent;
     }
-
 
     // TODO: Change these tags a ENUM or some sort of central constant.
     public void set(final string tag, final string value)
@@ -318,11 +308,6 @@ public class ClassModel extends ApexConstructBaseModel
         this.authors = authors;
     }
 
-    public void setCodeInfoAttachmentId(final id codeInfoAttachmentId)
-    {
-        this.codeInfoAttachmentId = codeInfoAttachmentId;
-    }
-
     public void setConstructors(final list<ConstructorModel> constructors)
     {
         this.constructors = constructors;
@@ -368,5 +353,4 @@ public class ClassModel extends ApexConstructBaseModel
     {
         this.properties = properties;
     }
-
 }

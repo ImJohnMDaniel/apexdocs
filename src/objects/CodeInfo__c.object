@@ -82,6 +82,15 @@
         <unique>false</unique>
     </fields>
     <fields>
+        <fullName>ModelJSON__c</fullName>
+        <externalId>false</externalId>
+        <label>Model JSON</label>
+        <length>131072</length>
+        <trackTrending>false</trackTrending>
+        <type>LongTextArea</type>
+        <visibleLines>3</visibleLines>
+    </fields>
+    <fields>
         <fullName>ModelType__c</fullName>
         <description>The type of data record this is.  It can be CLASS, METHOD, PROPERTY.</description>
         <externalId>false</externalId>
@@ -94,13 +103,27 @@
         <unique>false</unique>
     </fields>
     <label>Code Info</label>
+    <listViews>
+        <fullName>All</fullName>
+        <columns>NAME</columns>
+        <columns>FileName__c</columns>
+        <columns>ModelType__c</columns>
+        <columns>ApexClassId__c</columns>
+        <filterScope>Everything</filterScope>
+        <label>All</label>
+        <language>en_US</language>
+    </listViews>
     <nameField>
         <displayFormat>CIN-{000000000}</displayFormat>
         <label>Code Info Name</label>
         <type>AutoNumber</type>
     </nameField>
     <pluralLabel>Code Info</pluralLabel>
-    <searchLayouts/>
+    <searchLayouts>
+        <excludedStandardButtons>New</excludedStandardButtons>
+        <excludedStandardButtons>ChangeOwner</excludedStandardButtons>
+        <excludedStandardButtons>Accept</excludedStandardButtons>
+    </searchLayouts>
     <sharingModel>ReadWrite</sharingModel>
     <visibility>Public</visibility>
 </CustomObject>
